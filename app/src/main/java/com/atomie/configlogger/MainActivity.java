@@ -7,10 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -22,16 +24,22 @@ import android.widget.Toast;
 public class MainActivity extends AppCompatActivity {
 
     public static final String EXTRA_MESSAGE = "com.atomie.configlogger.MESSAGE";
+
     SeekBar lightBar;
-    int brightness;
     TextView textView;
+    TextView contObserver;
+    TextView broadReceiver;
+
     Context context;
+    AudioManager audioManager;
+
+    int brightness;
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Toast.makeText(context, action, Toast.LENGTH_SHORT).show();
+            broadReceiver.setText(broadReceiver.getText()+"\n"+action);
         }
     };
 
@@ -44,23 +52,39 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
+            String info;
             if (uri == null) {
-                Toast.makeText(context, "onChange: uri == null", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS))) {
-                int v = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-                Log.i("MainActivity", "Brightness value: "+ v);
-                Toast.makeText(context, "Brightness value: "+ v, Toast.LENGTH_SHORT).show();
-            } else if (uri.equals(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON))) {
-                int v = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-                Log.i("MainActivity", "Airplane mode on: "+ v);
-                Toast.makeText(context, "Airplane mode on: "+ v, Toast.LENGTH_SHORT).show();
+                info = "uri == null\n";
             } else {
-                Toast.makeText(context, "Unknown content change: "+ uri.toString(), Toast.LENGTH_SHORT).show();
-            }
+                info = uri + "\n";
+                if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS))) {
+                    brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+                    int progress = Math.round((float)brightness*100/256);
+                    lightBar.setProgress(progress);
+                    textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
 
+                    info += "Brightness value: "+ brightness;
+                    Log.i("MainActivity", info);
+                } else if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE))) {
+                    int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
+                    if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
+                        info += "Brightness mode: manual";
+                    } else {
+                        info += "Brightness mode: auto";
+                    }
+                } else if (uri.equals(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON))) {
+                    int v = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
+                    info += "Airplane mode on: "+ v;
+                    Log.i("MainActivity", info);
+                } else if (uri.toString().equals("content://settings/system/volume_music_speaker")) {
+                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                    info += "Volume: "+ currentVolume;
+                    Log.i("MainActivity", info);
+                } else {
+                    info += "Unknown content change";
+                }
+            }
+            contObserver.setText(contObserver.getText()+"\n"+info);
         }
     };
 
@@ -71,11 +95,17 @@ public class MainActivity extends AppCompatActivity {
 
         lightBar = findViewById(R.id.seekBar);
         textView = findViewById(R.id.textView);
+        contObserver = findViewById(R.id.textView_contentObserver);
+        broadReceiver = findViewById(R.id.textView_broadcastReceiver);
+
+        contObserver.setMovementMethod(new ScrollingMovementMethod());
+        broadReceiver.setMovementMethod(new ScrollingMovementMethod());
 
         context = getApplicationContext();
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-        int progress = (int) (float)brightness*100/256;
+        int progress = Math.round((float)brightness*100/256);
         lightBar.setProgress(progress);
         textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
 
@@ -83,12 +113,10 @@ public class MainActivity extends AppCompatActivity {
         lightBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                brightness = (int) (float)progress*256/100;
+                brightness = Math.round((float)progress*256/100);
                 textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
                 if (Settings.System.canWrite(context)) {
                     Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, brightness);
-                } else {
-//                    Toast.makeText(context, "Cannot write to system settings", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override
@@ -106,6 +134,34 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+
+        // register broadcast receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SET_WALLPAPER);
+        registerReceiver(broadcastReceiver, filter);
+
+        // register content observer
+        getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, contentObserver);
+        getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, contentObserver);
+//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), false, contentObserver);
+//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE), false, contentObserver);
+//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON), false, contentObserver);
+
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // unregister broadcast receiver
+        unregisterReceiver(broadcastReceiver);
+        // unregister content observer
+        getContentResolver().unregisterContentObserver(contentObserver);
     }
 
     // Listen to the volume keys
@@ -120,33 +176,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         return super.onKeyDown(keyCode, event);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SET_WALLPAPER);
-        registerReceiver(broadcastReceiver, filter);
-
-        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
-                false, contentObserver);
-        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON),
-                false, contentObserver);
-
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        unregisterReceiver(broadcastReceiver);
-        getContentResolver().unregisterContentObserver(contentObserver);
     }
 
     public void sendMessage(View view) {
