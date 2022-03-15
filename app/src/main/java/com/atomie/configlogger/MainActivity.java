@@ -52,47 +52,57 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            String info;
+            String key = "";
+            int value = 0;
+            String tag = "";
+
             if (uri == null) {
-                info = "uri == null\n";
+                key = "null";
             } else {
-                info = uri + "\n";
+                key = uri.toString();
                 if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS))) {
-                    brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-                    int progress = Math.round((float)brightness*100/256);
+                    value = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+                    int progress = Math.round((float)value*100/256);
                     lightBar.setProgress(progress);
-                    textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
-                    info += "Brightness value: "+ brightness;
+                    textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + value);
+                    tag = "Brightness value: "+ value;
                 } else if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE))) {
-                    int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
-                    if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
-                        info += "Brightness mode: manual";
+                    value = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
+                    if (value == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
+                        tag = "Brightness mode: manual";
                     } else {
-                        info += "Brightness mode: auto";
+                        tag = "Brightness mode: auto";
                     }
                 } else if (uri.equals(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON))) {
-                    int v = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-                    info += "Airplane mode on: "+ v;
+                    value = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
+                    tag = "Airplane mode on: "+ value;
                 } else if (uri.equals(Settings.System.getUriFor("volume_music_speaker"))) {
-                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                    info += "Music volume: "+ currentVolume;
+                    value = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                    tag = "Music volume: "+ value;
                 } else if (uri.equals(Settings.System.getUriFor("volume_ring_speaker"))) {
-                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-                    info += "Ring volume: "+ currentVolume;
+                    value = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+                    tag = "Ring volume: "+ value;
                 } else if (uri.equals(Settings.System.getUriFor("volume_alarm_speaker"))) {
-                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-                    info += "Alarm volume: "+ currentVolume;
+                    value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+                    tag = "Alarm volume: "+ value;
                 } else if (uri.equals(Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION))) {
-                    int v = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
-                    info += "Accelerometer rotation:  "+ v;
+                    value = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
+                    tag = "Accelerometer rotation:  "+ value;
                 } else {
-                    info += "Unknown content change";
+                    tag = "Unknown content change";
                 }
             }
-            Log.i("contObserver", info);
-            contObserver.setText(contObserver.getText()+"\n"+info);
+
+            Log.i("contObserver", key+"\n"+tag);
+            contObserver.setText(contObserver.getText()+"\n"+key+"\n"+tag);
+            record(key, value, tag);
         }
     };
+
+    public void record(String key, int value, String tag) {
+        long cur_time = System.currentTimeMillis();
+        // TODO
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
