@@ -98,8 +98,14 @@ public class MainActivity extends AppCompatActivity {
         contObserver = findViewById(R.id.textView_contentObserver);
         broadReceiver = findViewById(R.id.textView_broadcastReceiver);
 
+        // set scrollable
         contObserver.setMovementMethod(new ScrollingMovementMethod());
         broadReceiver.setMovementMethod(new ScrollingMovementMethod());
+
+        // save text when frozen
+        // ref: https://stackoverflow.com/a/31541484/11854304
+        contObserver.setFreezesText(true);
+        broadReceiver.setFreezesText(true);
 
         context = getApplicationContext();
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
