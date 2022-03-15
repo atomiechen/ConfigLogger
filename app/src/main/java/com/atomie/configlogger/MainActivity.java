@@ -62,9 +62,7 @@ public class MainActivity extends AppCompatActivity {
                     int progress = Math.round((float)brightness*100/256);
                     lightBar.setProgress(progress);
                     textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
-
                     info += "Brightness value: "+ brightness;
-                    Log.i("MainActivity", info);
                 } else if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE))) {
                     int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
                     if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
@@ -75,15 +73,23 @@ public class MainActivity extends AppCompatActivity {
                 } else if (uri.equals(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON))) {
                     int v = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
                     info += "Airplane mode on: "+ v;
-                    Log.i("MainActivity", info);
-                } else if (uri.toString().equals("content://settings/system/volume_music_speaker")) {
+                } else if (uri.equals(Settings.System.getUriFor("volume_music_speaker"))) {
                     int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                    info += "Volume: "+ currentVolume;
-                    Log.i("MainActivity", info);
+                    info += "Music volume: "+ currentVolume;
+                } else if (uri.equals(Settings.System.getUriFor("volume_ring_speaker"))) {
+                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+                    info += "Ring volume: "+ currentVolume;
+                } else if (uri.equals(Settings.System.getUriFor("volume_alarm_speaker"))) {
+                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+                    info += "Alarm volume: "+ currentVolume;
+                } else if (uri.equals(Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION))) {
+                    int v = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
+                    info += "Accelerometer rotation:  "+ v;
                 } else {
                     info += "Unknown content change";
                 }
             }
+            Log.i("contObserver", info);
             contObserver.setText(contObserver.getText()+"\n"+info);
         }
     };
