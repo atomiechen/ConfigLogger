@@ -33,8 +33,6 @@ public class MainActivity extends AppCompatActivity {
     Context context;
     AudioManager audioManager;
 
-    int brightness;
-
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -126,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
         context = getApplicationContext();
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
-        brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+        int brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
         int progress = Math.round((float)brightness*100/256);
         lightBar.setProgress(progress);
         textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
@@ -135,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         lightBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                brightness = Math.round((float)progress*256/100);
+                int brightness = Math.round((float)progress*256/100);
                 textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
                 if (Settings.System.canWrite(context)) {
                     Settings.System.putInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, brightness);
