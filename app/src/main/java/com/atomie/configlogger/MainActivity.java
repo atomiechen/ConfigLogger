@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -37,7 +38,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            broadReceiver.setText(broadReceiver.getText()+"\n"+action);
+            record(action, 0, "");
+            Log.i("broadReceiver", action);
+            addMessage(broadReceiver, action);
         }
     };
 
@@ -91,11 +94,30 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            Log.i("contObserver", key+"\n"+tag);
-            contObserver.setText(contObserver.getText()+"\n"+key+"\n"+tag);
             record(key, value, tag);
+            String msg = key+"\n"+tag;
+            Log.i("contObserver", msg);
+            addMessage(contObserver, msg);
         }
     };
+
+    // ref: https://stackoverflow.com/a/7350267/11854304
+    // function to append a string to a TextView as a new line
+    // and scroll to the bottom if needed
+    private void addMessage(TextView mTextView, String msg) {
+        // append the new string
+        mTextView.append("\n" + msg);
+        // find the amount we need to scroll.  This works by
+        // asking the TextView's internal layout for the position
+        // of the final line and then subtracting the TextView's height
+        Layout layout = mTextView.getLayout();
+        if (layout == null)
+            return;
+        final int scrollAmount = layout.getLineTop(mTextView.getLineCount()) - mTextView.getHeight();
+        // if there is no need to scroll, scrollAmount will be <=0
+        if (scrollAmount > 0)
+            mTextView.scrollTo(0, scrollAmount);
+    }
 
     public void record(String key, int value, String tag) {
         long cur_time = System.currentTimeMillis();
@@ -114,7 +136,9 @@ public class MainActivity extends AppCompatActivity {
 
         // set scrollable
         contObserver.setMovementMethod(new ScrollingMovementMethod());
+        contObserver.setScrollbarFadingEnabled(false);
         broadReceiver.setMovementMethod(new ScrollingMovementMethod());
+        broadReceiver.setScrollbarFadingEnabled(false);
 
         // save text when frozen
         // ref: https://stackoverflow.com/a/31541484/11854304
