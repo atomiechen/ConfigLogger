@@ -22,9 +22,16 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String EXTRA_MESSAGE = "com.atomie.configlogger.MESSAGE";
+
+    List<String> data = new ArrayList<>();
 
     SeekBar lightBar;
     TextView textView;
@@ -86,6 +93,17 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    public void record(String key, int value, String tag) {
+        long cur_timestamp = System.currentTimeMillis();
+        // record to memory
+        String [] paras = {Long.toString(cur_timestamp), key, Integer.toString(value), tag};
+        data.add(String.join(",", paras));
+        // update UI
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        String cur_datetime = format.format(new Date(cur_timestamp));
+        addMessage(contObserver, cur_datetime);
+    }
+
     // ref: https://stackoverflow.com/a/7350267/11854304
     // function to append a string to a TextView as a new line
     // and scroll to the bottom if needed
@@ -102,11 +120,6 @@ public class MainActivity extends AppCompatActivity {
         // if there is no need to scroll, scrollAmount will be <=0
         if (scrollAmount > 0)
             mTextView.scrollTo(0, scrollAmount);
-    }
-
-    public void record(String key, int value, String tag) {
-        long cur_time = System.currentTimeMillis();
-        // TODO
     }
 
     @Override
