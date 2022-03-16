@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
                 } else if (inter.equals("global")) {
                     value = Settings.Global.getInt(getContentResolver(), database_key, value);
                 }
-                tag = database_key + ": " + value;
+                tag = database_key;
 
                 // update UI
                 if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
@@ -86,8 +86,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
+            // record data
             record(key, value, tag);
-            String msg = key+"\n"+tag;
+            // print data
+            String msg = key+"\n"+tag + ": " + value;
             Log.i("contObserver", msg);
             addMessage(contObserver, msg);
         }
@@ -163,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             }
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
+                // require WRITE SETTINGS permission
                 if (!Settings.System.canWrite(context)) {
                     Toast.makeText(context, "Cannot write to system settings", Toast.LENGTH_SHORT).show();
                     Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS);
@@ -217,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    // No use
     public void sendMessage(View view) {
         // Do something
         Intent intent = new Intent(this, DisplayMessageActivity.class);
