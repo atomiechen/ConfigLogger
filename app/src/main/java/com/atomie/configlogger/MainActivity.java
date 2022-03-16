@@ -59,38 +59,24 @@ public class MainActivity extends AppCompatActivity {
 
             if (uri == null) {
                 key = "null";
+                tag = "Unknown content change";
             } else {
                 key = uri.toString();
-                if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS))) {
-                    value = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+                String database_key = uri.getLastPathSegment();
+                String inter = uri.getPathSegments().get(0);
+                if (inter.equals("system")) {
+                    value = Settings.System.getInt(getContentResolver(), database_key, value);
+                } else if (inter.equals("global")) {
+                    value = Settings.Global.getInt(getContentResolver(), database_key, value);
+                }
+                tag = database_key + ": " + value;
+
+                // update UI
+                if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
                     int progress = Math.round((float)value*100/256);
                     lightBar.setProgress(progress);
                     textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + value);
                     tag = "Brightness value: "+ value;
-                } else if (uri.equals(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE))) {
-                    value = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, 0);
-                    if (value == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
-                        tag = "Brightness mode: manual";
-                    } else {
-                        tag = "Brightness mode: auto";
-                    }
-                } else if (uri.equals(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON))) {
-                    value = Settings.System.getInt(context.getContentResolver(), Settings.Global.AIRPLANE_MODE_ON, 0);
-                    tag = "Airplane mode on: "+ value;
-                } else if (uri.equals(Settings.System.getUriFor("volume_music_speaker"))) {
-                    value = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                    tag = "Music volume: "+ value;
-                } else if (uri.equals(Settings.System.getUriFor("volume_ring_speaker"))) {
-                    value = audioManager.getStreamVolume(AudioManager.STREAM_RING);
-                    tag = "Ring volume: "+ value;
-                } else if (uri.equals(Settings.System.getUriFor("volume_alarm_speaker"))) {
-                    value = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-                    tag = "Alarm volume: "+ value;
-                } else if (uri.equals(Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION))) {
-                    value = Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0);
-                    tag = "Accelerometer rotation:  "+ value;
-                } else {
-                    tag = "Unknown content change";
                 }
             }
 
@@ -192,9 +178,6 @@ public class MainActivity extends AppCompatActivity {
         // register content observer
         getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, contentObserver);
         getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, contentObserver);
-//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS), false, contentObserver);
-//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE), false, contentObserver);
-//        getContentResolver().registerContentObserver(Settings.System.getUriFor(Settings.Global.AIRPLANE_MODE_ON), false, contentObserver);
 
     }
 
