@@ -209,14 +209,21 @@ public class MainActivity extends AppCompatActivity {
     // Listen to the volume keys
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+        String key = "KeyDownEvent";
+        int value = 0;
+        String tag = "";
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                Toast.makeText(context, "Volume down", Toast.LENGTH_SHORT).show();
+                value = 1;
+                tag = "volume_down";
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
-                Toast.makeText(context, "Volume up", Toast.LENGTH_SHORT).show();
+                value = 2;
+                tag = "volume_up";
                 break;
         }
+        record(key, value, tag);
+        addMessage(contObserver, tag);
         return super.onKeyDown(keyCode, event);
     }
 
