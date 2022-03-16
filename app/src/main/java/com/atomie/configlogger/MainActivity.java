@@ -127,6 +127,28 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // register broadcast receiver
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
+        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SET_WALLPAPER);
+        registerReceiver(broadcastReceiver, filter);
+
+        // register content observer
+        getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, contentObserver);
+        getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, contentObserver);
+
+        context = getApplicationContext();
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+
+        /*
+          UI related code below, not important
+         */
+
         setContentView(R.layout.activity_main);
 
         lightBar = findViewById(R.id.seekBar);
@@ -144,9 +166,6 @@ public class MainActivity extends AppCompatActivity {
         // ref: https://stackoverflow.com/a/31541484/11854304
         contObserver.setFreezesText(true);
         broadReceiver.setFreezesText(true);
-
-        context = getApplicationContext();
-        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         int brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
         int progress = Math.round((float)brightness*100/256);
@@ -179,21 +198,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
-
-        // register broadcast receiver
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
-        filter.addAction(Intent.ACTION_CONFIGURATION_CHANGED);
-        filter.addAction(Intent.ACTION_MEDIA_BUTTON);
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_SCREEN_ON);
-        filter.addAction(Intent.ACTION_SET_WALLPAPER);
-        registerReceiver(broadcastReceiver, filter);
-
-        // register content observer
-        getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, contentObserver);
-        getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, contentObserver);
-
     }
 
     @Override
