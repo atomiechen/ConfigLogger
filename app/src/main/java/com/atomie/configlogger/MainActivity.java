@@ -76,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
                     int progress = Math.round((float)value*100/256);
                     lightBar.setProgress(progress);
                     textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + value);
-                    tag = "Brightness value: "+ value;
                 }
             }
 
