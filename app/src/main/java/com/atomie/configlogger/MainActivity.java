@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     SeekBar lightBar;
     TextView textView;
     TextView contObserver;
-    TextView broadReceiver;
 
     Context context;
     AudioManager audioManager;
@@ -45,9 +44,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            // record data
             record(action, 0, "");
+            // print data
             Log.i("broadReceiver", action);
-            addMessage(broadReceiver, action);
+            addMessage(contObserver, action);
         }
     };
 
@@ -154,18 +155,14 @@ public class MainActivity extends AppCompatActivity {
         lightBar = findViewById(R.id.seekBar);
         textView = findViewById(R.id.textView);
         contObserver = findViewById(R.id.textView_contentObserver);
-        broadReceiver = findViewById(R.id.textView_broadcastReceiver);
 
         // set scrollable
         contObserver.setMovementMethod(new ScrollingMovementMethod());
         contObserver.setScrollbarFadingEnabled(false);
-        broadReceiver.setMovementMethod(new ScrollingMovementMethod());
-        broadReceiver.setScrollbarFadingEnabled(false);
 
         // save text when frozen
         // ref: https://stackoverflow.com/a/31541484/11854304
         contObserver.setFreezesText(true);
-        broadReceiver.setFreezesText(true);
 
         int brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
         int progress = Math.round((float)brightness*100/256);
