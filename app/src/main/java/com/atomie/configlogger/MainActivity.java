@@ -10,6 +10,7 @@ import android.database.ContentObserver;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.Layout;
@@ -22,6 +23,10 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -31,7 +36,11 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String EXTRA_MESSAGE = "com.atomie.configlogger.MESSAGE";
 
+    // recording related
     List<String> data = new ArrayList<>();
+    String filename = "log.csv";
+//    BufferedWriter writer;
+    FileWriter writer;
 
     SeekBar lightBar;
     TextView textView;
@@ -96,11 +105,28 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    // Checks if a volume containing external storage is available
+    // for read and write.
+    private boolean isExternalStorageWritable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+    }
+
+    // record data to memory and file
     public void record(String key, int value, String tag) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
         String [] paras = {Long.toString(cur_timestamp), key, Integer.toString(value), tag};
-        data.add(String.join(",", paras));
+        String line = String.join(",", paras);
+        data.add(line);
+        // record to file
+        if (writer != null) {
+            try {
+                writer.write(line+"\n");
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
         // update UI
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String cur_datetime = format.format(new Date(cur_timestamp));
@@ -142,6 +168,21 @@ public class MainActivity extends AppCompatActivity {
         // register content observer
         getContentResolver().registerContentObserver(Settings.System.CONTENT_URI, true, contentObserver);
         getContentResolver().registerContentObserver(Settings.Global.CONTENT_URI, true, contentObserver);
+
+        // recording related
+        try {
+            File file;
+            if (isExternalStorageWritable()) {
+                file = new File(getExternalFilesDir(null), filename);
+            } else {
+                file = new File(getFilesDir(), filename);
+            }
+//            FileOutputStream fout_stream = openFileOutput(filename, Context.MODE_APPEND);
+            FileOutputStream fout_stream = new FileOutputStream(file, true);
+            writer = new FileWriter(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         context = getApplicationContext();
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
@@ -205,6 +246,14 @@ public class MainActivity extends AppCompatActivity {
         unregisterReceiver(broadcastReceiver);
         // unregister content observer
         getContentResolver().unregisterContentObserver(contentObserver);
+
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     // Listen to the volume keys
