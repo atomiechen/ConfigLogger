@@ -24,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -39,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
     // recording related
     List<String> data = new ArrayList<>();
     String filename = "log.csv";
-//    BufferedWriter writer;
     FileWriter writer;
 
     SeekBar lightBar;
@@ -177,9 +175,8 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 file = new File(getFilesDir(), filename);
             }
-//            FileOutputStream fout_stream = openFileOutput(filename, Context.MODE_APPEND);
-            FileOutputStream fout_stream = new FileOutputStream(file, true);
-            writer = new FileWriter(file);
+            // append to file
+            writer = new FileWriter(file, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
