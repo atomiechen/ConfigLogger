@@ -131,15 +131,36 @@ public class MainActivity extends AppCompatActivity {
         addMessage(contObserver, cur_datetime);
     }
 
-    // ref: https://stackoverflow.com/a/7350267/11854304
-    // function to append a string to a TextView as a new line
-    // and scroll to the bottom if needed
+    // Append a string to a TextView as a new line
+    // 1. erase excessive lines
+    // 2. scroll to the bottom if needed
     private void addMessage(TextView mTextView, String msg) {
         // append the new string
         mTextView.append("\n" + msg);
+
+        // Erase excessive lines
+        // ref: https://stackoverflow.com/a/10312621/11854304
+        final int MAX_LINES = 200;
+        int excessLineNumber = mTextView.getLineCount() - MAX_LINES;
+        if (excessLineNumber > 0) {
+            int eolIndex = -1;
+            CharSequence charSequence = mTextView.getText();
+            for (int i=0; i<excessLineNumber; i++) {
+                do {
+                    eolIndex++;
+                } while(eolIndex < charSequence.length() && charSequence.charAt(eolIndex) != '\n');
+            }
+            if (eolIndex < charSequence.length()) {
+                mTextView.getEditableText().delete(0, eolIndex+1);
+            } else {
+                mTextView.setText("");
+            }
+        }
+
         // find the amount we need to scroll.  This works by
         // asking the TextView's internal layout for the position
         // of the final line and then subtracting the TextView's height
+        // ref: https://stackoverflow.com/a/7350267/11854304
         Layout layout = mTextView.getLayout();
         if (layout == null)
             return;
