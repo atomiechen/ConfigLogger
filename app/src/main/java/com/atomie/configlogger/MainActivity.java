@@ -184,7 +184,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (uri == null) {
                 key = "null";
-                tag = "Unknown content change";
+                tag = "unknown";
             } else {
                 key = uri.toString();
                 String database_key = uri.getLastPathSegment();
@@ -195,6 +195,18 @@ public class MainActivity extends AppCompatActivity {
                     value = Settings.Global.getInt(getContentResolver(), database_key, value);
                 }
                 tag = database_key;
+
+                // record special information
+                if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
+                    int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, -1);
+                    if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
+                        tag = "SCREEN_BRIGHTNESS_MODE_MANUAL";
+                    } else if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
+                        tag = "SCREEN_BRIGHTNESS_MODE_AUTOMATIC";
+                    } else {
+                        tag = "unknown_mode";
+                    }
+                }
 
                 // update UI
                 if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
