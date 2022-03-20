@@ -323,24 +323,41 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Listen to the volume keys
+    // Listen to key down events
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        String key = "KeyDownEvent";
-        int value = 0;
+        String key = "onKeyDown";
+        int value = keyCode;
         String tag = "";
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_DOWN:
-                value = 1;
                 tag = "volume_down";
                 break;
             case KeyEvent.KEYCODE_VOLUME_UP:
-                value = 2;
                 tag = "volume_up";
                 break;
         }
         record(key, value, tag);
-        addMessage(contObserver, tag);
+        addMessage(contObserver, key + " " + value + ": " + tag);
         return super.onKeyDown(keyCode, event);
+    }
+
+    // Listen to key up events
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        String key = "onKeyUp";
+        int value = keyCode;
+        String tag = "";
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                tag = "volume_down";
+                break;
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                tag = "volume_up";
+                break;
+        }
+        record(key, value, tag);
+        addMessage(contObserver, key + " " + value + ": " + tag);
+        return super.onKeyUp(keyCode, event);
     }
 }
