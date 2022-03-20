@@ -6,7 +6,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Configuration;
 import android.database.ContentObserver;
+import android.hardware.display.DisplayManager;
 import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,16 +18,21 @@ import android.provider.Settings;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -106,14 +113,59 @@ public class MainActivity extends AppCompatActivity {
     AudioManager audioManager;
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        final ArrayList<String> tags = new ArrayList<>();
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
+            int value = 0;
+            tags.clear();
+
+            // get extra paras into JSON string
+            Bundle extras = intent.getExtras();
+            if (extras != null) {
+                JSONObject json = new JSONObject();
+                for (String key : extras.keySet()) {
+                    try {
+                        json.put(key, JSONObject.wrap(extras.get(key)));
+                    } catch(JSONException e) {
+                        //Handle exception here
+                        e.printStackTrace();
+                    }
+                }
+                tags.add(json.toString());
+            }
+
+            // record additional information for some special actions
+            switch (action) {
+                case Intent.ACTION_CONFIGURATION_CHANGED:
+                    Configuration config = getResources().getConfiguration();
+                    tags.add(config.toString());
+                    value = config.orientation;
+                    break;
+                case Intent.ACTION_SCREEN_OFF:
+                case Intent.ACTION_SCREEN_ON:
+                    // ref: https://stackoverflow.com/a/17348755/11854304
+                    DisplayManager dm = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
+                    if (dm != null) {
+                        Display [] displays = dm.getDisplays();
+                        int [] states = new int[displays.length];
+                        for (int i = 0; i < displays.length; i++) {
+                            states[i] = displays[i].getState();
+                        }
+                        tags.add(Arrays.toString(states));
+                    }
+                    break;
+            }
+
+            String tag = String.join("\n", tags);
+
             // record data
-            record(action, 0, "");
+            record(action, value, tag);
             // print data
-            Log.i("broadReceiver", action);
-            addMessage(contObserver, action);
+            String msg = action+"\n"+tag + ": " + value;
+            Log.i("broadReceiver", msg);
+            addMessage(contObserver, msg);
         }
     };
 
