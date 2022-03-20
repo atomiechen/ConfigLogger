@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
             Intent.ACTION_BATTERY_LOW,
             Intent.ACTION_BATTERY_OKAY,
             Intent.ACTION_BOOT_COMPLETED,
-            Intent.ACTION_CAMERA_BUTTON,
             Intent.ACTION_CONFIGURATION_CHANGED,
             Intent.ACTION_DOCK_EVENT,
             Intent.ACTION_DREAMING_STARTED,
