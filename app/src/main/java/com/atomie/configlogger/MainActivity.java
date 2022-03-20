@@ -31,8 +31,6 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String EXTRA_MESSAGE = "com.atomie.configlogger.MESSAGE";
-
     // recording related
     List<String> data = new ArrayList<>();
     String filename = "log.csv";
