@@ -171,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
             // record data
             record(action, value, tags.toArray(new String[0]));
             // print data
-            String msg = action + "\n" + String.join("\n", tags) + "\n" + value;
+            String msg = action + "\n" + value + "\n" + String.join("\n", tags);
             Log.i("broadReceiver", msg);
             addMessage(contObserver, msg);
         }
@@ -179,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
 
     // ref: https://stackoverflow.com/a/67355428/11854304
     ContentObserver contentObserver = new ContentObserver(new Handler()) {
+        final ArrayList<String> tags = new ArrayList<>();
+
         @Override
         public void onChange(boolean selfChange) {
             onChange(selfChange, null);
@@ -186,13 +188,13 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
+            tags.clear();
             String key = "";
             int value = 0;
-            String tag = "";
 
             if (uri == null) {
                 key = "null";
-                tag = "unknown";
+                tags.add("unknown");
             } else {
                 key = uri.toString();
                 String database_key = uri.getLastPathSegment();
@@ -202,17 +204,21 @@ public class MainActivity extends AppCompatActivity {
                 } else if (inter.equals("global")) {
                     value = Settings.Global.getInt(getContentResolver(), database_key, value);
                 }
-                tag = database_key;
 
                 // record special information
                 if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
+                    // record brightness value difference and update
+                    int diff = value - brightness;
+                    tags.add(Integer.toString(diff));
+                    brightness = value;
+                    // record brightness mode
                     int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, -1);
                     if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
-                        tag = "SCREEN_BRIGHTNESS_MODE_MANUAL";
+                        tags.add("manual");
                     } else if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
-                        tag = "SCREEN_BRIGHTNESS_MODE_AUTOMATIC";
+                        tags.add("automatic");
                     } else {
-                        tag = "unknown_mode";
+                        tags.add("unknown");
                     }
                 }
 
@@ -225,9 +231,9 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // record data
-            record(key, value, tag);
+            record(key, value, tags.toArray(new String[0]));
             // print data
-            String msg = key+"\n"+tag + ": " + value;
+            String msg = key + "\n" + value + "\n" + String.join("\n", tags);
             Log.i("contObserver", msg);
             addMessage(contObserver, msg);
         }
