@@ -416,7 +416,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         record(key, value, tag);
-        addMessage(contObserver, key + " " + value + ": " + tag);
+        addMessage(contObserver, key + " " + tag + ": " + value);
         return super.onKeyDown(keyCode, event);
     }
 
@@ -435,7 +435,7 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         record(key, value, tag);
-        addMessage(contObserver, key + " " + value + ": " + tag);
+        addMessage(contObserver, key + " " + tag + ": " + value);
         return super.onKeyUp(keyCode, event);
     }
 }
