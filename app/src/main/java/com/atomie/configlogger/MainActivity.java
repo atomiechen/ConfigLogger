@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -104,6 +105,15 @@ public class MainActivity extends AppCompatActivity {
     List<String> data = new ArrayList<>();
     String filename = "log.tsv";
     FileWriter writer;
+    int brightness;
+    static final HashMap<String, Integer> volume = new HashMap<>();
+    static {
+        volume.put("volume_music_speaker", 0);
+        volume.put("volume_ring_speaker", 0);
+        volume.put("volume_alarm_speaker", 0);
+        volume.put("volume_voice_speaker", 0);
+        volume.put("volume_tts_speaker", 0);
+    }
 
     SeekBar lightBar;
     TextView textView;
@@ -299,10 +309,7 @@ public class MainActivity extends AppCompatActivity {
             mTextView.scrollTo(0, scrollAmount);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
+    void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
         for (String action : listenedActions) {
@@ -329,13 +336,39 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        // record current values
+        String key = "static_record";
+        brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+        record(key, brightness, "brightness");
+        addMessage(contObserver, key + " brightness: "+brightness);
+        volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
+        volume.forEach((k, v) -> {
+            record(key, v, k);
+            addMessage(contObserver, key + " " + k + ": " + v);
+        });
+
         context = getApplicationContext();
         audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+    }
 
-        /*
-          UI related code below, not important
-         */
+    void terminate() {
+        // unregister broadcast receiver
+        unregisterReceiver(broadcastReceiver);
+        // unregister content observer
+        getContentResolver().unregisterContentObserver(contentObserver);
 
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         lightBar = findViewById(R.id.seekBar);
@@ -350,7 +383,9 @@ public class MainActivity extends AppCompatActivity {
         // ref: https://stackoverflow.com/a/31541484/11854304
         contObserver.setFreezesText(true);
 
-        int brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+        // initialization
+        initialize();
+
         int progress = Math.round((float)brightness*100/256);
         lightBar.setProgress(progress);
         textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + brightness);
@@ -386,19 +421,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        // unregister broadcast receiver
-        unregisterReceiver(broadcastReceiver);
-        // unregister content observer
-        getContentResolver().unregisterContentObserver(contentObserver);
-
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        terminate();
     }
 
     // Listen to key down events
