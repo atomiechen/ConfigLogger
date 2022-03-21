@@ -233,11 +233,16 @@ public class MainActivity extends AppCompatActivity {
     public void record(String key, int value, String... tag) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
-        String [] paras = new String[tag.length+3];
+        String [] paras;
+        if (tag != null) {
+            paras = new String[tag.length+3];
+            System.arraycopy(tag, 0, paras, 3, tag.length);
+        } else {
+            paras = new String[3];
+        }
         paras[0] = Long.toString(cur_timestamp);
         paras[1] = key;
         paras[2] = Integer.toString(value);
-        System.arraycopy(tag, 0, paras, 3, tag.length);
         String line = String.join("\t", paras);
         data.add(line);
         // record to file
