@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
     // recording related
     List<String> data = new ArrayList<>();
-    String filename = "log.csv";
+    String filename = "log.tsv";
     FileWriter writer;
 
     SeekBar lightBar;
@@ -157,13 +157,11 @@ public class MainActivity extends AppCompatActivity {
                     }
                     break;
             }
-
-            String tag = String.join("\n", tags);
-
+            
             // record data
-            record(action, value, tag);
+            record(action, value, tags.toArray(new String[0]));
             // print data
-            String msg = action+"\n"+tag + ": " + value;
+            String msg = action + "\n" + String.join("\n", tags) + "\n" + value;
             Log.i("broadReceiver", msg);
             addMessage(contObserver, msg);
         }
@@ -232,11 +230,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // record data to memory and file
-    public void record(String key, int value, String tag) {
+    public void record(String key, int value, String... tag) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
-        String [] paras = {Long.toString(cur_timestamp), key, Integer.toString(value), tag};
-        String line = String.join(",", paras);
+        String [] paras = new String[tag.length+3];
+        paras[0] = Long.toString(cur_timestamp);
+        paras[1] = key;
+        paras[2] = Integer.toString(value);
+        System.arraycopy(tag, 0, paras, 3, tag.length);
+        String line = String.join("\t", paras);
         data.add(line);
         // record to file
         if (writer != null) {
