@@ -3,6 +3,7 @@ package com.atomie.configlogger;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -30,6 +31,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -321,6 +326,27 @@ public class MainActivity extends AppCompatActivity {
             mTextView.scrollTo(0, scrollAmount);
     }
 
+    void record_settings(String key, Class<?> c) {
+        Field[] fields_glb = c.getFields();
+        for (Field f : fields_glb) {
+            if (Modifier.isStatic(f.getModifiers())) {
+                try {
+                    String name = f.getName();
+                    String database_key = f.get(null).toString();
+                    Method method = c.getMethod("getString", ContentResolver.class, String.class);
+                    String value_s = (String) method.invoke(null, getContentResolver(), database_key);
+
+                    record(key, 0, name, database_key, value_s);
+                    String msg = key + " " + name + "\n" + database_key + ": " + value_s;
+                    Log.i("contObserver", msg);
+                    addMessage(contObserver, msg);
+                } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
@@ -349,18 +375,24 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // record current values
-        String key = "static_record";
+        // record brightness
+        String key_bri = "static_brightness";
         brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-        record(key, brightness, "brightness");
-        addMessage(contObserver, key + " brightness: "+brightness);
+        record(key_bri, brightness);
+        addMessage(contObserver, key_bri + " brightness: "+brightness);
+        // record volumes
+        String key_vol = "static_volume";
         volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
         volume.forEach((k, v) -> {
-            record(key, v, k);
-            addMessage(contObserver, key + " " + k + ": " + v);
+            record(key_vol, v, k);
+            addMessage(contObserver, key_vol + " " + k + ": " + v);
         });
-
-        context = getApplicationContext();
-        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        // record system settings
+        String key_sys = "static_system";
+        record_settings(key_sys, Settings.System.class);
+        // record global settings
+        String key_glb = "static_global";
+        record_settings(key_glb, Settings.Global.class);
     }
 
     void terminate() {
@@ -382,6 +414,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        context = getApplicationContext();
+        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         lightBar = findViewById(R.id.seekBar);
         textView = findViewById(R.id.textView);
