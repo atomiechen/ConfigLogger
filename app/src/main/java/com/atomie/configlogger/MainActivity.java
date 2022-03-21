@@ -347,6 +347,29 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    void record_all() {
+        // record brightness
+        String key_bri = "static_brightness";
+        brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
+        record(key_bri, brightness);
+        addMessage(contObserver, key_bri + " brightness: "+brightness);
+        // record volumes
+        String key_vol = "static_volume";
+        volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
+        volume.forEach((k, v) -> {
+            record(key_vol, v, k);
+            addMessage(contObserver, key_vol + " " + k + ": " + v);
+        });
+
+        // record system settings
+        String key_sys = "static_system";
+        record_settings(key_sys, Settings.System.class);
+        
+        // record global settings
+        String key_glb = "static_global";
+        record_settings(key_glb, Settings.Global.class);
+    }
+
     void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
@@ -374,25 +397,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        // record current values
-        // record brightness
-        String key_bri = "static_brightness";
-        brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-        record(key_bri, brightness);
-        addMessage(contObserver, key_bri + " brightness: "+brightness);
-        // record volumes
-        String key_vol = "static_volume";
-        volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
-        volume.forEach((k, v) -> {
-            record(key_vol, v, k);
-            addMessage(contObserver, key_vol + " " + k + ": " + v);
-        });
-        // record system settings
-        String key_sys = "static_system";
-        record_settings(key_sys, Settings.System.class);
-        // record global settings
-        String key_glb = "static_global";
-        record_settings(key_glb, Settings.Global.class);
+        // record all current values
+        record_all();
     }
 
     void terminate() {
