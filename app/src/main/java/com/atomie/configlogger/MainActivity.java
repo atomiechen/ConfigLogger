@@ -296,7 +296,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Erase excessive lines
         // ref: https://stackoverflow.com/a/10312621/11854304
-        final int MAX_LINES = 200;
+        final int MAX_LINES = 1000;
         int excessLineNumber = mTextView.getLineCount() - MAX_LINES;
         if (excessLineNumber > 0) {
             int eolIndex = -1;
