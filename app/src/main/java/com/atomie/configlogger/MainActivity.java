@@ -221,6 +221,12 @@ public class MainActivity extends AppCompatActivity {
                         tags.add("unknown");
                     }
                 }
+                if (volume.containsKey(database_key)) {
+                    // record volume value difference and update
+                    int diff = value - volume.get(database_key);
+                    tags.add(Integer.toString(diff));
+                    volume.put(database_key, value);
+                }
 
                 // update UI
                 if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
