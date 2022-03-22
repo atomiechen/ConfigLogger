@@ -232,6 +232,10 @@ public class MainActivity extends AppCompatActivity {
                     int diff = value - volume.get(database_key);
                     tags.add("diff:" + Integer.toString(diff));
                     volume.put(database_key, value);
+                } else if (database_key.startsWith("volume_")) {
+                    // record new volume value
+                    volume.put(database_key, value);
+                    tags.add("diff:null");
                 }
 
                 // update UI
