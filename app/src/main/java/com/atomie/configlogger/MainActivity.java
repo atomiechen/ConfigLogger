@@ -354,6 +354,7 @@ public class MainActivity extends AppCompatActivity {
         brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
         record(key_bri, brightness);
         addMessage(contObserver, key_bri + " brightness: "+brightness);
+
         // record volumes
         String key_vol = "static_volume";
         volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
@@ -361,6 +362,14 @@ public class MainActivity extends AppCompatActivity {
             record(key_vol, v, k);
             addMessage(contObserver, key_vol + " " + k + ": " + v);
         });
+
+        // record configuration
+        String key_cfg = "static_config";
+        Configuration config = getResources().getConfiguration();
+        String tag = config.toString();
+        record(key_cfg, 0, tag);
+        addMessage(contObserver, key_cfg + "\n" + tag);
+
 
         // record system settings
         String key_sys = "static_system";
