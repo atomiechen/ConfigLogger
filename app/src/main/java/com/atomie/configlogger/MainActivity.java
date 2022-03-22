@@ -113,11 +113,20 @@ public class MainActivity extends AppCompatActivity {
     int brightness;
     static final HashMap<String, Integer> volume = new HashMap<>();
     static {
+        // speaker
         volume.put("volume_music_speaker", 0);
         volume.put("volume_ring_speaker", 0);
         volume.put("volume_alarm_speaker", 0);
         volume.put("volume_voice_speaker", 0);
         volume.put("volume_tts_speaker", 0);
+        // headset
+        volume.put("volume_music_headset", 0);
+        volume.put("volume_voice_headset", 0);
+        volume.put("volume_tts_headset", 0);
+        // headphone
+        volume.put("volume_music_headphone", 0);
+        volume.put("volume_voice_headphone", 0);
+        volume.put("volume_tts_headphone", 0);
     }
 
     SeekBar lightBar;
