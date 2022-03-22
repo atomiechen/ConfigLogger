@@ -198,43 +198,44 @@ public class MainActivity extends AppCompatActivity {
             int value = 0;
 
             if (uri == null) {
-                key = "null";
-                tags.add("unknown");
+                key = "uri_null";
             } else {
                 key = uri.toString();
                 String database_key = uri.getLastPathSegment();
                 String inter = uri.getPathSegments().get(0);
-                if (inter.equals("system")) {
+                if ("system".equals(inter)) {
                     value = Settings.System.getInt(getContentResolver(), database_key, value);
-                } else if (inter.equals("global")) {
+                    tags.add(Settings.System.getString(getContentResolver(), database_key));
+                } else if ("global".equals(inter)) {
                     value = Settings.Global.getInt(getContentResolver(), database_key, value);
+                    tags.add(Settings.Global.getString(getContentResolver(), database_key));
                 }
 
                 // record special information
-                if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
+                if (Settings.System.SCREEN_BRIGHTNESS.equals(database_key)) {
                     // record brightness value difference and update
                     int diff = value - brightness;
-                    tags.add(Integer.toString(diff));
+                    tags.add("diff:" + Integer.toString(diff));
                     brightness = value;
                     // record brightness mode
                     int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, -1);
                     if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
-                        tags.add("manual");
+                        tags.add("mode:man");
                     } else if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
-                        tags.add("automatic");
+                        tags.add("mode:auto");
                     } else {
-                        tags.add("unknown");
+                        tags.add("mode:unknown");
                     }
                 }
                 if (volume.containsKey(database_key)) {
                     // record volume value difference and update
                     int diff = value - volume.get(database_key);
-                    tags.add(Integer.toString(diff));
+                    tags.add("diff:" + Integer.toString(diff));
                     volume.put(database_key, value);
                 }
 
                 // update UI
-                if (database_key.equals(Settings.System.SCREEN_BRIGHTNESS)) {
+                if (Settings.System.SCREEN_BRIGHTNESS.equals(database_key)) {
                     int progress = Math.round((float)value*100/256);
                     lightBar.setProgress(progress);
                     textView.setText("进度值：" + progress + "  / 100 \n亮度值：" + value);
