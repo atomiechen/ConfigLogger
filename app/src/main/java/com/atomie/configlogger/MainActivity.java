@@ -129,12 +129,11 @@ public class MainActivity extends AppCompatActivity {
         volume.put("volume_tts_headphone", 0);
     }
 
+    Context context;
+
     SeekBar lightBar;
     TextView textView;
     TextView contObserver;
-
-    Context context;
-    AudioManager audioManager;
 
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         final ArrayList<String> tags = new ArrayList<>();
@@ -445,7 +444,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         context = getApplicationContext();
-        audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 
         lightBar = findViewById(R.id.seekBar);
         textView = findViewById(R.id.textView);
