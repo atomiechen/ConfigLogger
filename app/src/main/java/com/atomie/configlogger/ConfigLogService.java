@@ -1,5 +1,6 @@
 package com.atomie.configlogger;
 
+import android.accessibilityservice.AccessibilityService;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -13,9 +14,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.IBinder;
 import android.provider.Settings;
 import android.view.Display;
+import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityEvent;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -36,7 +38,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-public class ConfigLogService extends Service {
+public class ConfigLogService extends AccessibilityService {
 
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.configlogservice.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
@@ -125,6 +127,7 @@ public class ConfigLogService extends Service {
         volume.put("volume_voice_headphone", 0);
         volume.put("volume_tts_headphone", 0);
     }
+    final ArrayList<String> tags = new ArrayList<>();
 
     Context context;
     LocalBroadcastManager localBroadcastManager;
@@ -260,9 +263,26 @@ public class ConfigLogService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+    public void onAccessibilityEvent(AccessibilityEvent event) {
+
+    }
+
+    @Override
+    public void onInterrupt() {
+
+    }
+
+    @Override
+    protected boolean onKeyEvent(KeyEvent event) {
+        tags.clear();
+
+        String key = "onKeyEvent";
+        int value = event.getKeyCode();
+        int action = event.getAction();
+        tags.add(Integer.toString(action));
+
+        record(key, value, tags.toArray(new String[0]));
+        return super.onKeyEvent(event);
     }
 
     void initialize() {
