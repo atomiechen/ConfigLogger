@@ -15,6 +15,7 @@ import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,6 +80,24 @@ public class MainActivity extends AppCompatActivity {
             mTextView.scrollTo(0, scrollAmount);
     }
 
+    public void clickStartService(View view) {
+        ComponentName ret = startService(new Intent(this, ConfigLogService.class));
+        if (ret != null) {
+            addMessage(logTextView, "SERVICE started!");
+        } else {
+            addMessage(logTextView, "SERVICE failed to start!!!");
+        }
+    }
+
+    public void clickStopService(View view) {
+        boolean ret = stopService(new Intent(this, ConfigLogService.class));
+        if (ret) {
+            addMessage(logTextView, "SERVICE stopped!");
+        } else {
+            addMessage(logTextView, "SERVICE already stopped!");
+        }
+    }
+
     void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
@@ -86,12 +105,7 @@ public class MainActivity extends AppCompatActivity {
         localBroadcastManager.registerReceiver(broadcastReceiver , filter);
 
         // start service
-        ComponentName ret = startService(new Intent(this, ConfigLogService.class));
-        if (ret != null) {
-            addMessage(logTextView, "SERVICE started!");
-        } else {
-            addMessage(logTextView, "SERVICE failed to start!!!");
-        }
+        clickStartService(null);
     }
 
     void terminate() {
