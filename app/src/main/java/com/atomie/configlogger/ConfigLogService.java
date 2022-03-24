@@ -255,8 +255,8 @@ public class ConfigLogService extends Service {
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         terminate();
+        super.onDestroy();
     }
 
     @Override
