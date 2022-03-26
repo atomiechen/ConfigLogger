@@ -3,22 +3,27 @@ package com.atomie.configlogger;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
+import android.view.accessibility.AccessibilityManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -113,6 +118,20 @@ public class MainActivity extends AppCompatActivity {
         localBroadcastManager.unregisterReceiver(broadcastReceiver);
     }
 
+    // ref: https://stackoverflow.com/a/14923144/11854304
+    public boolean isAccessibilityServiceEnabled(Class<? extends AccessibilityService> service) {
+        AccessibilityManager am = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
+        List<AccessibilityServiceInfo> enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK);
+
+        for (AccessibilityServiceInfo enabledService : enabledServices) {
+            ServiceInfo enabledServiceInfo = enabledService.getResolveInfo().serviceInfo;
+            if (enabledServiceInfo.packageName.equals(context.getPackageName()) && enabledServiceInfo.name.equals(service.getName()))
+                return true;
+        }
+
+        return false;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -164,6 +183,12 @@ public class MainActivity extends AppCompatActivity {
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
 
+        // jump to accessibility settings
+        if (!isAccessibilityServiceEnabled(ConfigLogService.class)) {
+            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            startActivity(intent);
+        }
+
         // initialization
         initialize();
     }
@@ -172,41 +197,5 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         terminate();
         super.onDestroy();
-    }
-
-    // Listen to key down events
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        String key = "onKeyDown";
-        int value = keyCode;
-        String tag = "";
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                tag = "volume_down";
-                break;
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                tag = "volume_up";
-                break;
-        }
-        addMessage(logTextView, key + " " + tag + ": " + value);
-        return super.onKeyDown(keyCode, event);
-    }
-
-    // Listen to key up events
-    @Override
-    public boolean onKeyUp(int keyCode, KeyEvent event) {
-        String key = "onKeyUp";
-        int value = keyCode;
-        String tag = "";
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_VOLUME_DOWN:
-                tag = "volume_down";
-                break;
-            case KeyEvent.KEYCODE_VOLUME_UP:
-                tag = "volume_up";
-                break;
-        }
-        addMessage(logTextView, key + " " + tag + ": " + value);
-        return super.onKeyUp(keyCode, event);
     }
 }
