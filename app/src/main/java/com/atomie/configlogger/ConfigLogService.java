@@ -18,6 +18,7 @@ import android.provider.Settings;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -128,6 +129,7 @@ public class ConfigLogService extends AccessibilityService {
         volume.put("volume_tts_headphone", 0);
     }
     final ArrayList<String> tags = new ArrayList<>();
+    String packageName = "";
 
     Context context;
     LocalBroadcastManager localBroadcastManager;
@@ -227,6 +229,7 @@ public class ConfigLogService extends AccessibilityService {
                     } else {
                         tags.add("mode:unknown");
                     }
+                    tags.add("pkg:"+packageName);
                 }
                 if (volume.containsKey(database_key)) {
                     // record volume value difference and update
@@ -264,7 +267,12 @@ public class ConfigLogService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
+        String eventString = event.toString();
+        packageName = event.getPackageName().toString();
+        int eventType = event.getEventType();
+        AccessibilityNodeInfo nodeInfo = event.getSource();
 
+//        record("onAccessibilityEvent", eventType, eventString, packageName);
     }
 
     @Override
