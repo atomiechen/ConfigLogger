@@ -127,6 +127,10 @@ public class ConfigLogService extends AccessibilityService {
         volume.put("volume_music_headphone", 0);
         volume.put("volume_voice_headphone", 0);
         volume.put("volume_tts_headphone", 0);
+        // Bluetooth A2DP
+        volume.put("volume_music_bt_a2dp", 0);
+        volume.put("volume_voice_bt_a2dp", 0);
+        volume.put("volume_tts_bt_a2dp", 0);
     }
     final ArrayList<String> tags = new ArrayList<>();
     String packageName = "";
