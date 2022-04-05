@@ -2,6 +2,7 @@ package com.atomie.configlogger;
 
 import android.accessibilityservice.AccessibilityService;
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -104,6 +105,10 @@ public class ConfigLogService extends AccessibilityService {
             Intent.ACTION_USER_FOREGROUND,
             Intent.ACTION_USER_PRESENT,
             Intent.ACTION_USER_UNLOCKED,
+            // Bluetooth related
+            BluetoothDevice.ACTION_ACL_CONNECTED,
+            BluetoothDevice.ACTION_ACL_DISCONNECT_REQUESTED,
+            BluetoothDevice.ACTION_ACL_DISCONNECTED,
     };
 
     // recording related
@@ -153,8 +158,12 @@ public class ConfigLogService extends AccessibilityService {
                 JSONObject json = new JSONObject();
                 for (String key : extras.keySet()) {
                     try {
-                        json.put(key, JSONObject.wrap(extras.get(key)));
-                    } catch(JSONException e) {
+                        Object obj = JSONObject.wrap(extras.get(key));
+                        if (obj == null) {
+                            obj = JSONObject.wrap(extras.get(key).toString());
+                        }
+                        json.put(key, obj);
+                    } catch (JSONException e) {
                         //Handle exception here
                         e.printStackTrace();
                     }
