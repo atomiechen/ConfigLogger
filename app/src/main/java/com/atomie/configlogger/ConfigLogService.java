@@ -261,9 +261,6 @@ public class ConfigLogService extends AccessibilityService {
         }
     };
 
-    public ConfigLogService() {
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -282,10 +279,10 @@ public class ConfigLogService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         String eventString = event.toString();
         packageName = event.getPackageName().toString();
-        int eventType = event.getEventType();
-        AccessibilityNodeInfo nodeInfo = event.getSource();
 
+//        int eventType = event.getEventType();
 //        record("onAccessibilityEvent", eventType, eventString, packageName);
+//        AccessibilityNodeInfo nodeInfo = event.getSource();
     }
 
     @Override
