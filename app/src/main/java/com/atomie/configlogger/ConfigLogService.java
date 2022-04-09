@@ -259,6 +259,9 @@ public class ConfigLogService extends AccessibilityService {
         }
     };
 
+    public ConfigLogService() {
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -275,12 +278,7 @@ public class ConfigLogService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        String eventString = event.toString();
         packageName = event.getPackageName().toString();
-
-//        int eventType = event.getEventType();
-//        record("onAccessibilityEvent", eventType, eventString, packageName);
-//        AccessibilityNodeInfo nodeInfo = event.getSource();
     }
 
     @Override
@@ -356,27 +354,26 @@ public class ConfigLogService extends AccessibilityService {
     void record_all() {
         JSONObject json = new JSONObject();
 
-        // record brightness
+        // store brightness
         brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
         jsonSilentPut(json, "brightness", brightness);
 
-        // record volumes
+        // store volumes
         volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
         volume.forEach((k, v) -> jsonSilentPut(json, k, v));
 
-        // record configuration and orientation
+        // store configuration and orientation
         Configuration config = getResources().getConfiguration();
         jsonSilentPut(json, "configuration", config.toString());
         jsonSilentPut(json, "orientation", config.orientation);
 
-        // record system settings
-        String key_sys = "system";
-        jsonPutSettings(json, key_sys, Settings.System.class);
+        // store system settings
+        jsonPutSettings(json, "system", Settings.System.class);
 
-        // record global settings
-        String key_glb = "global";
-        jsonPutSettings(json, key_glb, Settings.Global.class);
+        // store global settings
+        jsonPutSettings(json, "global", Settings.Global.class);
 
+        // record
         record("static", "", "", json.toString());
     }
 
