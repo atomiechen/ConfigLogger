@@ -248,9 +248,8 @@ public class ConfigLogService extends AccessibilityService {
                         volume.put(database_key, value);
                     }
                     // record volume value difference and update
-                    int diff = value - volume.get(database_key);
+                    int diff = value - volume.put(database_key, value);
                     jsonSilentPut(json, "diff", diff);
-                    volume.put(database_key, value);
                 }
             }
 
@@ -278,7 +277,10 @@ public class ConfigLogService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        packageName = event.getPackageName().toString();
+        CharSequence pkg = event.getPackageName();
+        if (pkg != null) {
+            packageName = event.getPackageName().toString();
+        }
     }
 
     @Override
