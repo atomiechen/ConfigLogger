@@ -23,6 +23,7 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -137,46 +138,43 @@ public class ConfigLogService extends AccessibilityService {
         volume.put("volume_voice_bt_a2dp", 0);
         volume.put("volume_tts_bt_a2dp", 0);
     }
-    final ArrayList<String> tags = new ArrayList<>();
     String packageName = "";
 
     Context context;
     LocalBroadcastManager localBroadcastManager;
 
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        final ArrayList<String> tags = new ArrayList<>();
+    void jsonSilentPut(JSONObject json, String key, Object value) {
+        try {
+            json.put(key, value);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 
+    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            JSONObject json = new JSONObject();
             String action = intent.getAction();
-            int value = 0;
-            tags.clear();
 
             // get extra paras into JSON string
             Bundle extras = intent.getExtras();
             if (extras != null) {
-                JSONObject json = new JSONObject();
                 for (String key : extras.keySet()) {
-                    try {
-                        Object obj = JSONObject.wrap(extras.get(key));
-                        if (obj == null) {
-                            obj = JSONObject.wrap(extras.get(key).toString());
-                        }
-                        json.put(key, obj);
-                    } catch (JSONException e) {
-                        //Handle exception here
-                        e.printStackTrace();
+                    Object obj = JSONObject.wrap(extras.get(key));
+                    if (obj == null) {
+                        obj = JSONObject.wrap(extras.get(key).toString());
                     }
+                    jsonSilentPut(json, key, obj);
                 }
-                tags.add(json.toString());
             }
 
             // record additional information for some special actions
             switch (action) {
                 case Intent.ACTION_CONFIGURATION_CHANGED:
                     Configuration config = getResources().getConfiguration();
-                    tags.add(config.toString());
-                    value = config.orientation;
+                    jsonSilentPut(json, "configuration", config.toString());
+                    jsonSilentPut(json, "orientation", config.orientation);
                     break;
                 case Intent.ACTION_SCREEN_OFF:
                 case Intent.ACTION_SCREEN_ON:
@@ -188,19 +186,18 @@ public class ConfigLogService extends AccessibilityService {
                         for (int i = 0; i < displays.length; i++) {
                             states[i] = displays[i].getState();
                         }
-                        tags.add(Arrays.toString(states));
+                        jsonSilentPut(json, "displays", states);
                     }
                     break;
             }
 
             // record data
-            record(action, value, tags.toArray(new String[0]));
+            record("BroadcastReceive", action, "", json.toString());
         }
     };
 
     // ref: https://stackoverflow.com/a/67355428/11854304
     ContentObserver contentObserver = new ContentObserver(new Handler()) {
-        final ArrayList<String> tags = new ArrayList<>();
 
         @Override
         public void onChange(boolean selfChange) {
@@ -209,9 +206,10 @@ public class ConfigLogService extends AccessibilityService {
 
         @Override
         public void onChange(boolean selfChange, Uri uri) {
-            tags.clear();
+            JSONObject json = new JSONObject();
             String key = "";
             int value = 0;
+            String tag = "";
 
             if (uri == null) {
                 key = "uri_null";
@@ -221,43 +219,43 @@ public class ConfigLogService extends AccessibilityService {
                 String inter = uri.getPathSegments().get(0);
                 if ("system".equals(inter)) {
                     value = Settings.System.getInt(getContentResolver(), database_key, value);
-                    tags.add(Settings.System.getString(getContentResolver(), database_key));
+                    tag = Settings.System.getString(getContentResolver(), database_key);
                 } else if ("global".equals(inter)) {
                     value = Settings.Global.getInt(getContentResolver(), database_key, value);
-                    tags.add(Settings.Global.getString(getContentResolver(), database_key));
+                    tag = Settings.Global.getString(getContentResolver(), database_key);
                 }
 
                 // record special information
                 if (Settings.System.SCREEN_BRIGHTNESS.equals(database_key)) {
                     // record brightness value difference and update
                     int diff = value - brightness;
-                    tags.add("diff:" + Integer.toString(diff));
+                    jsonSilentPut(json, "diff", diff);
                     brightness = value;
                     // record brightness mode
                     int mode = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS_MODE, -1);
                     if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_MANUAL) {
-                        tags.add("mode:man");
+                        jsonSilentPut(json, "mode", "man");
                     } else if (mode == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC) {
-                        tags.add("mode:auto");
+                        jsonSilentPut(json, "mode", "auto");
                     } else {
-                        tags.add("mode:unknown");
+                        jsonSilentPut(json, "mode", "unknown");
                     }
-                    tags.add("pkg:"+packageName);
+                    jsonSilentPut(json, "package", packageName);
                 }
-                if (volume.containsKey(database_key)) {
+                if (database_key.startsWith("volume_")) {
+                    if (!volume.containsKey(database_key)) {
+                        // record new volume value
+                        volume.put(database_key, value);
+                    }
                     // record volume value difference and update
                     int diff = value - volume.get(database_key);
-                    tags.add("diff:" + Integer.toString(diff));
+                    jsonSilentPut(json, "diff", diff);
                     volume.put(database_key, value);
-                } else if (database_key.startsWith("volume_")) {
-                    // record new volume value
-                    volume.put(database_key, value);
-                    tags.add("diff:null");
                 }
             }
 
             // record data
-            record(key, value, tags.toArray(new String[0]));
+            record("ContentChange", key, tag, json.toString());
         }
     };
 
@@ -292,14 +290,14 @@ public class ConfigLogService extends AccessibilityService {
 
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
-        tags.clear();
+        JSONObject json = new JSONObject();
+        jsonSilentPut(json, "code", event.getKeyCode());
+        jsonSilentPut(json, "action", event.getAction());
+        jsonSilentPut(json, "source", event.getSource());
+        jsonSilentPut(json, "eventTime", event.getEventTime());
+        jsonSilentPut(json, "downTime", event.getDownTime());
 
-        String key = "onKeyEvent";
-        int value = event.getKeyCode();
-        int action = event.getAction();
-        tags.add(Integer.toString(action));
-
-        record(key, value, tags.toArray(new String[0]));
+        record("KeyEvent", "KeyEvent://"+event.getAction()+"/"+event.getKeyCode(), "", json.toString());
         return super.onKeyEvent(event);
     }
 
@@ -356,33 +354,34 @@ public class ConfigLogService extends AccessibilityService {
     }
 
     void record_all() {
+        JSONObject json = new JSONObject();
+
         // record brightness
-        String key_bri = "static_brightness";
         brightness = Settings.System.getInt(getContentResolver(), Settings.System.SCREEN_BRIGHTNESS, 0);
-        record(key_bri, brightness);
+        jsonSilentPut(json, "brightness", brightness);
 
         // record volumes
-        String key_vol = "static_volume";
         volume.replaceAll((k, v) -> Settings.System.getInt(getContentResolver(), k, 0));
-        volume.forEach((k, v) -> record(key_vol, v, k));
+        volume.forEach((k, v) -> jsonSilentPut(json, k, v));
 
-        // record configuration
-        String key_cfg = "static_config";
+        // record configuration and orientation
         Configuration config = getResources().getConfiguration();
-        String tag = config.toString();
-        record(key_cfg, 0, tag);
-
+        jsonSilentPut(json, "configuration", config.toString());
+        jsonSilentPut(json, "orientation", config.orientation);
 
         // record system settings
-        String key_sys = "static_system";
-        record_settings(key_sys, Settings.System.class);
+        String key_sys = "system";
+        jsonPutSettings(json, key_sys, Settings.System.class);
 
         // record global settings
-        String key_glb = "static_global";
-        record_settings(key_glb, Settings.Global.class);
+        String key_glb = "global";
+        jsonPutSettings(json, key_glb, Settings.Global.class);
+
+        record("static", "", "", json.toString());
     }
 
-    void record_settings(String key, Class<?> c) {
+    void jsonPutSettings(JSONObject json, String key, Class<?> c) {
+        JSONArray jsonArray = new JSONArray();
         Field[] fields_glb = c.getFields();
         for (Field f : fields_glb) {
             if (Modifier.isStatic(f.getModifiers())) {
@@ -391,30 +390,23 @@ public class ConfigLogService extends AccessibilityService {
                     String database_key = f.get(null).toString();
                     Method method = c.getMethod("getString", ContentResolver.class, String.class);
                     String value_s = (String) method.invoke(null, getContentResolver(), database_key);
-
-                    record(key, 0, name, database_key, value_s);
+                    jsonArray.put(new JSONArray().put(name).put(database_key).put(value_s));
                 } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
             }
         }
+        jsonSilentPut(json, key, jsonArray);
     }
 
     // record data to memory and file
-    public void record(String key, int value, String... tag) {
+    public void record(String type, String action, String tag, String other) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
-        String [] paras;
-        if (tag != null) {
-            paras = new String[tag.length+3];
-            System.arraycopy(tag, 0, paras, 3, tag.length);
-        } else {
-            paras = new String[3];
-        }
-        paras[0] = Long.toString(cur_timestamp);
-        paras[1] = key;
-        paras[2] = Integer.toString(value);
-        String line = String.join("\t", paras);
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(cur_timestamp).append("\t").append(type).append("\t").append(action)
+                .append("\t").append(tag).append("\t").append(other);
+        String line = stringBuilder.toString();
         data.add(line);
         // record to file
         if (writer != null) {
@@ -429,9 +421,7 @@ public class ConfigLogService extends AccessibilityService {
         // broadcast to update UI
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String cur_datetime = format.format(new Date(cur_timestamp));
-        paras[0] = cur_datetime;
-        String msg = String.join("\n", paras);
-        broadcast(msg);
+        broadcast(cur_datetime+"\n"+line);
     }
 
     // send broadcast to notify
