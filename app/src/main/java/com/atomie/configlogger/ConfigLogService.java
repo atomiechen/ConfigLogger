@@ -1,7 +1,6 @@
 package com.atomie.configlogger;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -19,9 +18,6 @@ import android.provider.Settings;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,11 +31,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class ConfigLogService extends AccessibilityService {
 
@@ -113,7 +108,6 @@ public class ConfigLogService extends AccessibilityService {
     };
 
     // recording related
-    List<String> data = new ArrayList<>();
     String filename = "log.tsv";
     FileWriter writer;
     int brightness;
@@ -191,6 +185,8 @@ public class ConfigLogService extends AccessibilityService {
                     break;
             }
 
+            jsonSilentPut(json, "package", packageName);
+
             // record data
             record("BroadcastReceive", action, "", json.toString());
         }
@@ -207,7 +203,7 @@ public class ConfigLogService extends AccessibilityService {
         @Override
         public void onChange(boolean selfChange, Uri uri) {
             JSONObject json = new JSONObject();
-            String key = "";
+            String key;
             int value = 0;
             String tag = "";
 
@@ -240,7 +236,6 @@ public class ConfigLogService extends AccessibilityService {
                     } else {
                         jsonSilentPut(json, "mode", "unknown");
                     }
-                    jsonSilentPut(json, "package", packageName);
                 }
                 if (database_key.startsWith("volume_")) {
                     if (!volume.containsKey(database_key)) {
@@ -252,6 +247,8 @@ public class ConfigLogService extends AccessibilityService {
                     jsonSilentPut(json, "diff", diff);
                 }
             }
+
+            jsonSilentPut(json, "package", packageName);
 
             // record data
             record("ContentChange", key, tag, json.toString());
@@ -296,6 +293,7 @@ public class ConfigLogService extends AccessibilityService {
         jsonSilentPut(json, "source", event.getSource());
         jsonSilentPut(json, "eventTime", event.getEventTime());
         jsonSilentPut(json, "downTime", event.getDownTime());
+        jsonSilentPut(json, "package", packageName);
 
         record("KeyEvent", "KeyEvent://"+event.getAction()+"/"+event.getKeyCode(), "", json.toString());
         return super.onKeyEvent(event);
@@ -386,10 +384,13 @@ public class ConfigLogService extends AccessibilityService {
             if (Modifier.isStatic(f.getModifiers())) {
                 try {
                     String name = f.getName();
-                    String database_key = f.get(null).toString();
-                    Method method = c.getMethod("getString", ContentResolver.class, String.class);
-                    String value_s = (String) method.invoke(null, getContentResolver(), database_key);
-                    jsonArray.put(new JSONArray().put(name).put(database_key).put(value_s));
+                    Object obj = f.get(null);
+                    if (obj != null) {
+                        String database_key = obj.toString();
+                        Method method = c.getMethod("getString", ContentResolver.class, String.class);
+                        String value_s = (String) method.invoke(null, getContentResolver(), database_key);
+                        jsonArray.put(new JSONArray().put(name).put(database_key).put(value_s));
+                    }
                 } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
                     e.printStackTrace();
                 }
@@ -402,11 +403,8 @@ public class ConfigLogService extends AccessibilityService {
     public void record(String type, String action, String tag, String other) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(cur_timestamp).append("\t").append(type).append("\t").append(action)
-                .append("\t").append(tag).append("\t").append(other);
-        String line = stringBuilder.toString();
-        data.add(line);
+        String [] paras = {Long.toString(cur_timestamp), type, action, tag, other};
+        String line = String.join("\t", paras);
         // record to file
         if (writer != null) {
             try {
@@ -420,7 +418,8 @@ public class ConfigLogService extends AccessibilityService {
         // broadcast to update UI
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String cur_datetime = format.format(new Date(cur_timestamp));
-        broadcast(cur_datetime+"\n"+line);
+        paras[0] = " -------- " + cur_datetime + " -------- ";
+        broadcast(String.join("\n", paras));
     }
 
     // send broadcast to notify
