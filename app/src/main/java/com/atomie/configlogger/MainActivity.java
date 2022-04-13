@@ -10,6 +10,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -132,6 +133,27 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    private static final String[] PERMISSIONS = {
+
+    };
+
+    void checkPermissions() {
+        try {
+            boolean request = false;
+            for (String per : PERMISSIONS) {
+                int permission = checkSelfPermission(per);
+                Log.e(per, Boolean.toString(permission == PackageManager.PERMISSION_GRANTED));
+                if (permission != PackageManager.PERMISSION_GRANTED) {
+                    request = true;
+                }
+            }
+            if (request)
+                requestPermissions(PERMISSIONS, 1);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -182,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) { }
         });
+
+        checkPermissions();
 
         // jump to accessibility settings
         if (!isAccessibilityServiceEnabled(ConfigLogService.class)) {
