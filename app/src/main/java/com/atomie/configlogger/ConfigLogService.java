@@ -298,6 +298,7 @@ public class ConfigLogService extends AccessibilityService {
         jsonSilentPut(json, "eventTime", event.getEventTime());
         jsonSilentPut(json, "downTime", event.getDownTime());
         jsonSilentPut(json, "package", packageName);
+        jsonSilentPut(json, "keycodeString", KeyEvent.keyCodeToString(event.getKeyCode()));
 
         record("KeyEvent", "KeyEvent://"+event.getAction()+"/"+event.getKeyCode(), "", json.toString());
         return super.onKeyEvent(event);
