@@ -332,7 +332,7 @@ public class ConfigLogService extends AccessibilityService {
         }
 
         // record all current values
-        record_all();
+        record_all("start");
     }
 
     void terminate() {
@@ -356,7 +356,7 @@ public class ConfigLogService extends AccessibilityService {
         return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
     }
 
-    void record_all() {
+    void record_all(String action) {
         JSONObject json = new JSONObject();
 
         // store brightness
@@ -379,7 +379,7 @@ public class ConfigLogService extends AccessibilityService {
         jsonPutSettings(json, "global", Settings.Global.class);
 
         // record
-        record("static", "", "", json.toString());
+        record("static", action, "", json.toString());
     }
 
     void jsonPutSettings(JSONObject json, String key, Class<?> c) {
