@@ -43,6 +43,8 @@ public class ConfigLogService extends AccessibilityService {
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.configlogservice.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
+    private static int mLogID = 0;
+
     // listening
     final Uri[] listenedURIs = {
             Settings.System.CONTENT_URI,
@@ -416,11 +418,21 @@ public class ConfigLogService extends AccessibilityService {
         jsonSilentPut(json, key, jsonArray);
     }
 
+    private static synchronized int incLogID() {
+        int ret = mLogID;
+        if (mLogID >= 999) {
+            mLogID = 0;
+        } else {
+            mLogID++;
+        }
+        return ret;
+    }
+
     // record data to memory and file
     public void record(String type, String action, String tag, String other) {
         long cur_timestamp = System.currentTimeMillis();
         // record to memory
-        String [] paras = {Long.toString(cur_timestamp), type, action, tag, other};
+        String [] paras = {Long.toString(cur_timestamp), Integer.toString(incLogID()), type, action, tag, other};
         String line = String.join("\t", paras);
         // record to file
         if (writer != null) {
