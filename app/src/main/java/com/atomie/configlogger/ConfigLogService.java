@@ -393,6 +393,9 @@ public class ConfigLogService extends AccessibilityService {
         // store global settings
         jsonPutSettings(json, "global", Settings.Global.class);
 
+        // store secure settings
+        jsonPutSettings(json, "secure", Settings.Secure.class);
+
         // record
         record("static", action, "", json.toString());
     }
