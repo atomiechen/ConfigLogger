@@ -35,6 +35,8 @@ import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntUnaryOperator;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -43,7 +45,8 @@ public class ConfigLogService extends AccessibilityService {
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.configlogservice.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
-    private static int mLogID = 0;
+    private final AtomicInteger mLogID = new AtomicInteger(0);
+    private final IntUnaryOperator operator = x -> (x < 999)? (x + 1) : 0;
 
     // listening
     final Uri[] listenedURIs = {
@@ -422,14 +425,8 @@ public class ConfigLogService extends AccessibilityService {
         jsonSilentPut(json, key, jsonArray);
     }
 
-    private static synchronized int incLogID() {
-        int ret = mLogID;
-        if (mLogID >= 999) {
-            mLogID = 0;
-        } else {
-            mLogID++;
-        }
-        return ret;
+    private int incLogID() {
+        return mLogID.getAndUpdate(operator);
     }
 
     // record data to memory and file
