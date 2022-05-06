@@ -122,7 +122,8 @@ public class ConfigLogService extends AccessibilityService {
             BluetoothAdapter.ACTION_LOCAL_NAME_CHANGED,
             // WiFi related
             WifiManager.NETWORK_STATE_CHANGED_ACTION,
-            WifiManager.WIFI_STATE_CHANGED_ACTION
+            WifiManager.WIFI_STATE_CHANGED_ACTION,
+            WifiManager.SCAN_RESULTS_AVAILABLE_ACTION,
     };
 
     // recording related
