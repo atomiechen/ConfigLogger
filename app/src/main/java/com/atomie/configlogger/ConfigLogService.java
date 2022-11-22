@@ -13,12 +13,19 @@ import android.database.ContentObserver;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 
 import org.json.JSONArray;
@@ -42,6 +49,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 public class ConfigLogService extends AccessibilityService {
 
+    static final public String TAG = "ConfigLogService";
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.configlogservice.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
@@ -286,6 +294,69 @@ public class ConfigLogService extends AccessibilityService {
         context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         initialize();
+    }
+
+    static class ItemViewTouchListener implements View.OnTouchListener {
+        private int x = 0;
+        private int y = 0;
+        private final WindowManager.LayoutParams wl;
+        private final WindowManager windowManager;
+
+        public ItemViewTouchListener(WindowManager.LayoutParams wl, WindowManager windowManager) {
+            this.wl = wl;
+            this.windowManager = windowManager;
+        }
+
+        @Override
+        public boolean onTouch(View view, MotionEvent motionEvent) {
+            switch (motionEvent.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    x = (int) motionEvent.getRawX();
+                    y = (int) motionEvent.getRawY();
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    int nowX = (int) motionEvent.getRawX();
+                    int nowY = (int) motionEvent.getRawY();
+                    int movedX = nowX - x;
+                    int movedY = nowY - y;
+                    x = nowX;
+                    y = nowY;
+                    wl.x += movedX;
+                    wl.y += movedY;
+                    //更新悬浮球控件位置
+                    windowManager.updateViewLayout(view, wl);
+                    break;
+            }
+            return false;
+        }
+    }
+
+    void showWindow() {
+        WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        DisplayMetrics outMetrics = new DisplayMetrics();
+        windowManager.getDefaultDisplay().getMetrics(outMetrics);
+
+        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        //显示的位置
+        layoutParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
+        //刘海屏延伸到刘海里面
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        }
+        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+        layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
+        layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+
+        View floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
+        floatRootView.setOnTouchListener(new ItemViewTouchListener(layoutParams, windowManager));
+        windowManager.addView(floatRootView, layoutParams);
+        Log.e(TAG, "showWindow: addView");
+    }
+
+    @Override
+    protected void onServiceConnected() {
+        super.onServiceConnected();
+        showWindow();
     }
 
     @Override
