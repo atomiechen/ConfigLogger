@@ -57,6 +57,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.i("broadReceiver", msg);
                 addMessage(logTextView, msg);
             }
+            if (NotificationListener.ACTION_RECORD_MSG.equals(action)) {
+                String msg = intent.getStringExtra(NotificationListener.EXTRA_MSG);
+                addMessage(logTextView, msg);
+            }
         }
     };
 
@@ -121,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConfigLogService.ACTION_RECORD_MSG);
+        filter.addAction(NotificationListener.ACTION_RECORD_MSG);
         localBroadcastManager.registerReceiver(broadcastReceiver , filter);
 
         // start service
