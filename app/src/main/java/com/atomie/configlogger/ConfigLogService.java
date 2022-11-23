@@ -56,6 +56,10 @@ public class ConfigLogService extends AccessibilityService {
     private final AtomicInteger mLogID = new AtomicInteger(0);
     private final IntUnaryOperator operator = x -> (x < 999)? (x + 1) : 0;
 
+    // UI overlay
+    private View floatRootView;
+    private WindowManager windowManager;
+
     // listening
     final Uri[] listenedURIs = {
             Settings.System.CONTENT_URI,
@@ -294,6 +298,8 @@ public class ConfigLogService extends AccessibilityService {
         context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         initialize();
+        // initialization about UI overlay
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
 
     static class ItemViewTouchListener implements View.OnTouchListener {
@@ -332,7 +338,6 @@ public class ConfigLogService extends AccessibilityService {
     }
 
     void showWindow() {
-        WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
         DisplayMetrics outMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(outMetrics);
 
@@ -347,10 +352,16 @@ public class ConfigLogService extends AccessibilityService {
         layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
-        View floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
+        floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
         floatRootView.setOnTouchListener(new ItemViewTouchListener(layoutParams, windowManager));
         windowManager.addView(floatRootView, layoutParams);
         Log.e(TAG, "showWindow: addView");
+    }
+
+    void removeWindow() {
+        if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
+            windowManager.removeView(floatRootView);
+        }
     }
 
     @Override
@@ -361,6 +372,7 @@ public class ConfigLogService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
+        removeWindow();
         terminate();
         super.onDestroy();
     }
