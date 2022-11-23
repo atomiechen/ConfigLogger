@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
+import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -384,8 +385,41 @@ public class ConfigLogService extends AccessibilityService {
 
     public void changeOverlayText(String text) {
         Log.e(TAG, "changeOverlayText: " + text);
-        TextView textView = floatRootView.findViewById(R.id.msg_box);
-        textView.setText(text);
+        TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+        //mTextView.setText(text);
+        // append the new string
+        mTextView.append("\n" + text);
+
+        // Erase excessive lines
+        // ref: https://stackoverflow.com/a/10312621/11854304
+        final int MAX_LINES = 1000;
+        int excessLineNumber = mTextView.getLineCount() - MAX_LINES;
+        if (excessLineNumber > 0) {
+            int eolIndex = -1;
+            CharSequence charSequence = mTextView.getText();
+            for (int i=0; i<excessLineNumber; i++) {
+                do {
+                    eolIndex++;
+                } while(eolIndex < charSequence.length() && charSequence.charAt(eolIndex) != '\n');
+            }
+            if (eolIndex < charSequence.length()) {
+                mTextView.getEditableText().delete(0, eolIndex+1);
+            } else {
+                mTextView.setText("");
+            }
+        }
+
+        // find the amount we need to scroll.  This works by
+        // asking the TextView's internal layout for the position
+        // of the final line and then subtracting the TextView's height
+        // ref: https://stackoverflow.com/a/7350267/11854304
+        Layout layout = mTextView.getLayout();
+        if (layout == null)
+            return;
+        final int scrollAmount = layout.getLineTop(mTextView.getLineCount()) - mTextView.getHeight();
+        // if there is no need to scroll, scrollAmount will be <=0
+        if (scrollAmount > 0)
+            mTextView.scrollTo(0, scrollAmount);
     }
 
     @Override

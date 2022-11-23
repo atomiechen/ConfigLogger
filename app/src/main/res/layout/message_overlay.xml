@@ -2,15 +2,14 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+    android:layout_width="350dp"
+    android:layout_height="150dp">
 
     <TextView
         android:id="@+id/msg_box"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="Hello message world!"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="42dp" />
+        android:layout_width="350dp"
+        android:layout_height="150dp"
+        android:text="Hello message world!\nThis is a message."
+        android:background="#ffcccc"
+        android:scrollbars="vertical"/>
 </androidx.constraintlayout.widget.ConstraintLayout>

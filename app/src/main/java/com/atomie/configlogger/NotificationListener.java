@@ -58,15 +58,10 @@ public class NotificationListener extends NotificationListenerService {
             content = "content: " + extras.getString(Notification.EXTRA_TEXT, "");
         }
         // broadcast to update UI
-        broadcast(packagename);
-        broadcast(title);
-        broadcast(content);
-//        Log.i(TAG,title);
-//        Log.i(TAG,content);
-//        Log.i(TAG,packagename);
+        String text = packagename + '\n' + title + '\n' + content;
+        broadcast(text);
 
         if (ConfigLogService.isRunning()) {
-            String text = packagename + '\n' + title + '\n' + content;
             ConfigLogService.getInstance().changeOverlayText(text);
         }
     }
