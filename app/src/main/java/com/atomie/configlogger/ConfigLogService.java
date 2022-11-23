@@ -53,6 +53,16 @@ public class ConfigLogService extends AccessibilityService {
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.configlogservice.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
+    private static ConfigLogService self = null;
+
+    public static ConfigLogService getInstance() {
+        return self;
+    }
+
+    public static boolean isRunning() {
+        return self != null;
+    }
+
     private final AtomicInteger mLogID = new AtomicInteger(0);
     private final IntUnaryOperator operator = x -> (x < 999)? (x + 1) : 0;
 
@@ -289,15 +299,13 @@ public class ConfigLogService extends AccessibilityService {
         }
     };
 
-    public ConfigLogService() {
-    }
-
     @Override
     public void onCreate() {
         super.onCreate();
         context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         initialize();
+
         // initialization about UI overlay
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
@@ -361,12 +369,22 @@ public class ConfigLogService extends AccessibilityService {
     void removeWindow() {
         if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
             windowManager.removeView(floatRootView);
+            floatRootView = null;
         }
     }
 
     @Override
     protected void onServiceConnected() {
         super.onServiceConnected();
+        if (self != null) {
+            try {
+                self.disableSelf();
+                self = null;
+            } catch (Exception exc) {
+                Log.e(TAG, "清理残留accessibility service失败", exc);
+            }
+        }
+        self = this;
         showWindow();
     }
 
@@ -374,6 +392,7 @@ public class ConfigLogService extends AccessibilityService {
     public void onDestroy() {
         removeWindow();
         terminate();
+        self = null;
         super.onDestroy();
     }
 
