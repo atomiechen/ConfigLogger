@@ -38,7 +38,7 @@
                 android:id="@+id/button1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
+                android:layout_marginHorizontal="10dp"
                 android:onClick="clickStartService"
                 android:text="Start" />
 
@@ -46,9 +46,17 @@
                 android:id="@+id/button2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="20dp"
+                android:layout_marginHorizontal="10dp"
                 android:onClick="clickStopService"
                 android:text="Stop" />
+
+            <Button
+                android:id="@+id/button_overlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:onClick="toggleOverlay"
+                android:text="Overlay" />
         </LinearLayout>
 
         <TextView

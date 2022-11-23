@@ -65,8 +65,10 @@ public class NotificationListener extends NotificationListenerService {
 //        Log.i(TAG,content);
 //        Log.i(TAG,packagename);
 
-        String text = packagename + '\n' + title + '\n' + content;
-        ConfigLogService.getInstance().changeOverlayText(text);
+        if (ConfigLogService.isRunning()) {
+            String text = packagename + '\n' + title + '\n' + content;
+            ConfigLogService.getInstance().changeOverlayText(text);
+        }
     }
 
     @Override

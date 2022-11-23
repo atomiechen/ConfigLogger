@@ -374,6 +374,14 @@ public class ConfigLogService extends AccessibilityService {
         }
     }
 
+    void toggleWindow() {
+        if (floatRootView == null) {
+            showWindow();
+        } else {
+            removeWindow();
+        }
+    }
+
     public void changeOverlayText(String text) {
         Log.e(TAG, "changeOverlayText: " + text);
         TextView textView = floatRootView.findViewById(R.id.msg_box);

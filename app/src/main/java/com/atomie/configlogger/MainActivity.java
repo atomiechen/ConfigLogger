@@ -121,6 +121,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void toggleOverlay(View view) {
+        if (ConfigLogService.isRunning()) {
+            ConfigLogService.getInstance().toggleWindow();
+        }
+    }
+
     void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();
