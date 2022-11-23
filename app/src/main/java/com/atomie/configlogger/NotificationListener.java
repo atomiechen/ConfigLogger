@@ -24,6 +24,7 @@ import java.util.Date;
 public class NotificationListener extends NotificationListenerService {
     //需要开启权限：特殊访问权限->通知使用权
 
+    static final public String TAG = "NotificationListener";
     static final public String ACTION_RECORD_MSG = "com.atomie.configlogger.notificationlistener.record_msg";
     static final public String EXTRA_MSG = "com.atomie.configlogger.notificationlistener.msg";
 
@@ -40,7 +41,7 @@ public class NotificationListener extends NotificationListenerService {
     //ref:https://www.jianshu.com/p/981e7de2c7be
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        Log.i("NotificationListener","Notification posted");
+        Log.i(TAG,"Notification posted");
         Notification notification = sbn.getNotification();
         if (notification == null) {
             return;
@@ -60,14 +61,17 @@ public class NotificationListener extends NotificationListenerService {
         broadcast(packagename);
         broadcast(title);
         broadcast(content);
-//        Log.i("NotificationListener",title);
-//        Log.i("NotificationListener",content);
-//        Log.i("NotificationListener",packagename);
+//        Log.i(TAG,title);
+//        Log.i(TAG,content);
+//        Log.i(TAG,packagename);
+
+        String text = packagename + '\n' + title + '\n' + content;
+        ConfigLogService.getInstance().changeOverlayText(text);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        Log.i("NotificationListener","Notification removed");
+        Log.i(TAG,"Notification removed");
     }
 
     // send broadcast to notify

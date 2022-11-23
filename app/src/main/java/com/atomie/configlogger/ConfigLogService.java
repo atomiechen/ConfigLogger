@@ -27,6 +27,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
+import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -371,6 +372,12 @@ public class ConfigLogService extends AccessibilityService {
             windowManager.removeView(floatRootView);
             floatRootView = null;
         }
+    }
+
+    public void changeOverlayText(String text) {
+        Log.e(TAG, "changeOverlayText: " + text);
+        TextView textView = floatRootView.findViewById(R.id.msg_box);
+        textView.setText(text);
     }
 
     @Override
