@@ -1,6 +1,7 @@
 package com.atomie.configlogger;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
@@ -26,6 +27,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.List;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -157,6 +159,15 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    // ref: https://www.jianshu.com/p/981e7de2c7be
+    public boolean isNotificationListenerEnabled(Context context) {
+        Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(this);
+        if (packageNames.contains(context.getPackageName())) {
+            return true;
+        }
+        return false;
+    }
+
     void checkPermissions() {
         try {
             boolean request = false;
@@ -230,6 +241,12 @@ public class MainActivity extends AppCompatActivity {
         // jump to accessibility settings
         if (!isAccessibilityServiceEnabled(ConfigLogService.class)) {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            startActivity(intent);
+        }
+
+        // jump to notification settings
+        if (!isNotificationListenerEnabled(this)) {
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
             startActivity(intent);
         }
 
