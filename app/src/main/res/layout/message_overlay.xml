@@ -50,7 +50,7 @@
         <TextView
             android:id="@+id/msg_box"
             android:layout_width="fill_parent"
-            android:layout_height="200dp"
+            android:layout_height="300dp"
             android:text="Hello message world!\nThis is a message."
             android:background="#ffcccc"
             android:scrollbars="vertical"/>

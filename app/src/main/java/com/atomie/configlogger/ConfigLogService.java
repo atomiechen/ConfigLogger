@@ -58,7 +58,7 @@ public class ConfigLogService extends AccessibilityService {
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
     private static ConfigLogService self = null;
-    private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    private static final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public static ConfigLogService getInstance() {
         return self;

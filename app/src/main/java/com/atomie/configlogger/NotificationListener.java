@@ -1,6 +1,7 @@
 package com.atomie.configlogger;
 
 import android.app.Notification;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.service.notification.NotificationListenerService;
@@ -35,7 +36,7 @@ public class NotificationListener extends NotificationListenerService {
 
     @Override
     public void onListenerDisconnected() {
-//        requestRebind(new ComponentName(this, this.getClass()));
+        requestRebind(new ComponentName(this, this.getClass()));
         super.onListenerDisconnected();
     }
 
