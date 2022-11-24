@@ -1,6 +1,7 @@
 package com.atomie.configlogger;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.Notification;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -448,6 +449,17 @@ public class ConfigLogService extends AccessibilityService {
         if (pkg != null) {
             packageName = event.getPackageName().toString();
         }
+
+        // receive notification accessibility event
+        if (event.getEventType() == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
+            Notification notification = (Notification) event.getParcelableData();
+            if (notification == null) return;
+            String packagename = "package: " + event.getPackageName();
+            String text = "[ACC]\n" + packagename + '\n' + notificationToString(notification);
+            // update UI
+            broadcast(text);
+            changeOverlayText(text);
+        }
     }
 
     @Override
@@ -606,5 +618,27 @@ public class ConfigLogService extends AccessibilityService {
         if(msg != null)
             intent.putExtra(EXTRA_MSG, msg);
         localBroadcastManager.sendBroadcast(intent);
+    }
+
+    static String notificationToString(Notification notification) {
+        if (notification == null || notification.extras == null) {
+            return "invalid notification";
+        }
+        Bundle extras = notification.extras;
+        // 获取通知标题
+        String title = "title: " + extras.getString(Notification.EXTRA_TITLE, "");
+        // 获取通知内容
+        String text = "text: " + extras.getString(Notification.EXTRA_TEXT, "");
+        String summaryText = "summaryText: " + extras.getString(Notification.EXTRA_SUMMARY_TEXT, "");
+        String bigText = "bigText: " + extras.getString(Notification.EXTRA_BIG_TEXT, "");
+        String infoText = "infoText: " + extras.getString(Notification.EXTRA_INFO_TEXT, "");
+
+        return String.join("\n",
+                title,
+                text,
+                summaryText,
+                bigText,
+                infoText
+        );
     }
 }

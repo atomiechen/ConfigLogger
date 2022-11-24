@@ -1,10 +1,8 @@
 package com.atomie.configlogger;
 
 import android.app.Notification;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
@@ -46,24 +44,12 @@ public class NotificationListener extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         Log.i(TAG,"Notification posted");
         Notification notification = sbn.getNotification();
-        if (notification == null) {
-            return;
-        }
+        if (notification == null) return;
         //获取包名
-        String packagename = "packagename: " + sbn.getPackageName();
-        Bundle extras = notification.extras;
-        String title = null;
-        String content = null;
-        if (extras != null) {
-            // 获取通知标题
-            title = "title: " + extras.getString(Notification.EXTRA_TITLE, "");
-            // 获取通知内容
-            content = "content: " + extras.getString(Notification.EXTRA_TEXT, "");
-        }
+        String packagename = "package: " + sbn.getPackageName();
         // broadcast to update UI
-        String text = packagename + '\n' + title + '\n' + content;
+        String text = "[Notifi-Listener]\n" + packagename + '\n' + ConfigLogService.notificationToString(notification);
         broadcast(text);
-
         if (ConfigLogService.isRunning()) {
             ConfigLogService.getInstance().changeOverlayText(text);
         }
