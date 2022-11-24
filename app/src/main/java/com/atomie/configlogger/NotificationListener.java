@@ -1,25 +1,15 @@
 package com.atomie.configlogger;
 
 import android.app.Notification;
-import android.app.PendingIntent;
-import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Handler;
-import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
-import android.text.TextUtils;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 public class NotificationListener extends NotificationListenerService {
     //需要开启权限：特殊访问权限->通知使用权
@@ -36,6 +26,12 @@ public class NotificationListener extends NotificationListenerService {
         super.onCreate();
         context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
+    }
+
+    @Override
+    public void onListenerDisconnected() {
+        requestRebind(new ComponentName(this, this.getClass()));
+        super.onListenerDisconnected();
     }
 
     //ref:https://www.jianshu.com/p/981e7de2c7be

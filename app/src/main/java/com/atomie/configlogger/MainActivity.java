@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ref: https://stackoverflow.com/a/14923144/11854304
-    public boolean isAccessibilityServiceEnabled(Class<? extends AccessibilityService> service) {
+    static public boolean isAccessibilityServiceEnabled(Context context, Class<? extends AccessibilityService> service) {
         AccessibilityManager am = (AccessibilityManager) context.getSystemService(Context.ACCESSIBILITY_SERVICE);
         List<AccessibilityServiceInfo> enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK);
 
@@ -160,12 +160,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ref: https://www.jianshu.com/p/981e7de2c7be
-    public boolean isNotificationListenerEnabled(Context context) {
-        Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(this);
-        if (packageNames.contains(context.getPackageName())) {
-            return true;
-        }
-        return false;
+    static public boolean isNotificationListenerEnabled(Context context) {
+        Set<String> packageNames = NotificationManagerCompat.getEnabledListenerPackages(context);
+        return packageNames.contains(context.getPackageName());
     }
 
     void checkPermissions() {
@@ -239,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
 
         // jump to accessibility settings
-        if (!isAccessibilityServiceEnabled(ConfigLogService.class)) {
+        if (!isAccessibilityServiceEnabled(this, ConfigLogService.class)) {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
         }
