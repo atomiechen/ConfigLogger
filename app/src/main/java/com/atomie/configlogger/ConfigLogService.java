@@ -46,6 +46,7 @@ import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 
@@ -73,8 +74,10 @@ public class ConfigLogService extends AccessibilityService {
 
     // UI overlay
     private View floatRootView;
+    private WindowManager.LayoutParams layoutParams;
     private WindowManager windowManager;
     private ItemViewTouchListener overlayTouchListener;
+    private AtomicBoolean overlayOn = new AtomicBoolean(false);
 
     // listening
     final Uri[] listenedURIs = {
@@ -316,11 +319,11 @@ public class ConfigLogService extends AccessibilityService {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
 
-    void showWindow() {
+    void initOverlay() {
         DisplayMetrics outMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(outMetrics);
 
-        WindowManager.LayoutParams layoutParams = new WindowManager.LayoutParams();
+        layoutParams = new WindowManager.LayoutParams();
         //显示的位置
         layoutParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
         //刘海屏延伸到刘海里面
@@ -361,24 +364,39 @@ public class ConfigLogService extends AccessibilityService {
                 mTextView.setVisibility(View.VISIBLE);
             }
         });
-        floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeWindow());
-        windowManager.addView(floatRootView, layoutParams);
-        Log.e(TAG, "showWindow: addView");
+        floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeOverlay());
+
+        showOverlay();
     }
 
-    void removeWindow() {
+    void destroyOverlay() {
+        removeOverlay();
+        floatRootView = null;
+        overlayTouchListener = null;
+    }
+
+    synchronized void showOverlay() {
+        if (overlayOn.compareAndSet(false, true)) {
+            if (windowManager != null && floatRootView != null && layoutParams != null) {
+                windowManager.addView(floatRootView, layoutParams);
+            }
+            Log.e(TAG, "showOverlay");
+        }
+    }
+
+    synchronized void removeOverlay() {
         if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
             windowManager.removeView(floatRootView);
-            floatRootView = null;
-            overlayTouchListener = null;
+            overlayOn.set(false);
+            Log.e(TAG, "removeOverlay");
         }
     }
 
     void toggleWindow() {
-        if (floatRootView == null) {
-            showWindow();
+        if (!overlayOn.get()) {
+            showOverlay();
         } else {
-            removeWindow();
+            removeOverlay();
         }
     }
 
@@ -433,12 +451,12 @@ public class ConfigLogService extends AccessibilityService {
             }
         }
         self = this;
-        showWindow();
+        initOverlay();
     }
 
     @Override
     public void onDestroy() {
-        removeWindow();
+        destroyOverlay();
         terminate();
         self = null;
         super.onDestroy();
