@@ -182,6 +182,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // ref: https://gist.github.com/xinghui/b2ddd8cffe55c4b62f5d8846d5545bf9
+    private void toggleNotificationListenerService() {
+        ComponentName thisComponent = new ComponentName(this, /*getClass()*/ NotificationListener.class);
+        PackageManager pm = getPackageManager();
+        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+        pm.setComponentEnabledSetting(thisComponent, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -249,6 +257,8 @@ public class MainActivity extends AppCompatActivity {
 
         // initialization
         initialize();
+
+        toggleNotificationListenerService();
     }
 
     @Override

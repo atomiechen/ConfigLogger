@@ -26,11 +26,18 @@ public class NotificationListener extends NotificationListenerService {
         super.onCreate();
         context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
+//        requestRebind(new ComponentName(this, this.getClass()));
+    }
+
+    @Override
+    public void onListenerConnected() {
+//        requestRebind(new ComponentName(this, this.getClass()));
+        super.onListenerConnected();
     }
 
     @Override
     public void onListenerDisconnected() {
-        requestRebind(new ComponentName(this, this.getClass()));
+//        requestRebind(new ComponentName(this, this.getClass()));
         super.onListenerDisconnected();
     }
 
