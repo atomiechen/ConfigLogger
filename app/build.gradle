@@ -3,6 +3,15 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('../key_debug.jks')
+            keyAlias 'key-debug'
+            storePassword 'hcidebug'
+            keyPassword 'hcidebug'
+        }
+    }
+
     compileSdk 31
 
     defaultConfig {
