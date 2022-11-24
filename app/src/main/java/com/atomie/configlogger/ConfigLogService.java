@@ -23,6 +23,7 @@ import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -327,14 +328,37 @@ public class ConfigLogService extends AccessibilityService {
         layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        layoutParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
         layoutParams.x = 0;
-        layoutParams.y = -800;
+        layoutParams.y = 0;
 
         floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
         overlayTouchListener = new ItemViewTouchListener(layoutParams, windowManager);
         floatRootView.setOnTouchListener(overlayTouchListener);
         // add button click listener
-        floatRootView.findViewById(R.id.button_drag).setOnClickListener(view -> toggleDraggable());
+        floatRootView.findViewById(R.id.button_drag).setOnClickListener(view -> {
+            // toggle draggable
+            if (floatRootView != null && overlayTouchListener != null) {
+                overlayTouchListener.toggleDraggable();
+                // toggle scrollable
+                TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+                if (mTextView.getMovementMethod() == null) {
+                    mTextView.setMovementMethod(new ScrollingMovementMethod());
+                    mTextView.setScrollbarFadingEnabled(false);
+                } else {
+                    mTextView.setMovementMethod(null);
+                }
+            }
+        });
+        floatRootView.findViewById(R.id.button_fold).setOnClickListener(view -> {
+            // toggle fold
+            TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+            if (mTextView.getVisibility() == View.VISIBLE) {
+                mTextView.setVisibility(View.GONE);
+            } else {
+                mTextView.setVisibility(View.VISIBLE);
+            }
+        });
         floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeWindow());
         windowManager.addView(floatRootView, layoutParams);
         Log.e(TAG, "showWindow: addView");
@@ -353,20 +377,6 @@ public class ConfigLogService extends AccessibilityService {
             showWindow();
         } else {
             removeWindow();
-        }
-    }
-
-    void toggleDraggable() {
-        if (floatRootView != null && overlayTouchListener != null) {
-            overlayTouchListener.toggleDraggable();
-            // toggle scrollable
-            TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-            if (mTextView.getMovementMethod() == null) {
-                mTextView.setMovementMethod(new ScrollingMovementMethod());
-                mTextView.setScrollbarFadingEnabled(false);
-            } else {
-                mTextView.setMovementMethod(null);
-            }
         }
     }
 
