@@ -5,11 +5,41 @@
     android:layout_width="350dp"
     android:layout_height="150dp">
 
-    <TextView
-        android:id="@+id/msg_box"
-        android:layout_width="350dp"
-        android:layout_height="200dp"
-        android:text="Hello message world!\nThis is a message."
-        android:background="#ffcccc"
-        android:scrollbars="vertical"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/button_drag"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:text="Drag/Scroll" />
+
+            <Button
+                android:id="@+id/button_dismiss"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="5dp"
+                android:text="×" />
+
+        </LinearLayout>
+
+
+        <TextView
+            android:id="@+id/msg_box"
+            android:layout_width="350dp"
+            android:layout_height="200dp"
+            android:text="Hello message world!\nThis is a message."
+            android:background="#ffcccc"
+            android:scrollbars="vertical"/>
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

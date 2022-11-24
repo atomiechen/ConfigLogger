@@ -127,6 +127,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void toggleDraggable(View view) {
+        if (ConfigLogService.isRunning()) {
+            ConfigLogService.getInstance().toggleDraggable();
+        }
+    }
+
     void initialize() {
         // register broadcast receiver
         IntentFilter filter = new IntentFilter();

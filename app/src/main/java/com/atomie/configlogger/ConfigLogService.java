@@ -25,7 +25,6 @@ import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
@@ -72,6 +71,7 @@ public class ConfigLogService extends AccessibilityService {
     // UI overlay
     private View floatRootView;
     private WindowManager windowManager;
+    private ItemViewTouchListener overlayTouchListener;
 
     // listening
     final Uri[] listenedURIs = {
@@ -313,41 +313,6 @@ public class ConfigLogService extends AccessibilityService {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
 
-//    static class ItemViewTouchListener implements View.OnTouchListener {
-//        private int x = 0;
-//        private int y = 0;
-//        private final WindowManager.LayoutParams wl;
-//        private final WindowManager windowManager;
-//
-//        public ItemViewTouchListener(WindowManager.LayoutParams wl, WindowManager windowManager) {
-//            this.wl = wl;
-//            this.windowManager = windowManager;
-//        }
-//
-//        @Override
-//        public boolean onTouch(View view, MotionEvent motionEvent) {
-//            switch (motionEvent.getAction()) {
-//                case MotionEvent.ACTION_DOWN:
-//                    x = (int) motionEvent.getRawX();
-//                    y = (int) motionEvent.getRawY();
-//                    break;
-//                case MotionEvent.ACTION_MOVE:
-//                    int nowX = (int) motionEvent.getRawX();
-//                    int nowY = (int) motionEvent.getRawY();
-//                    int movedX = nowX - x;
-//                    int movedY = nowY - y;
-//                    x = nowX;
-//                    y = nowY;
-//                    wl.x += movedX;
-//                    wl.y += movedY;
-//                    //更新悬浮球控件位置
-//                    windowManager.updateViewLayout(view, wl);
-//                    break;
-//            }
-//            return false;
-//        }
-//    }
-
     void showWindow() {
         DisplayMetrics outMetrics = new DisplayMetrics();
         windowManager.getDefaultDisplay().getMetrics(outMetrics);
@@ -366,12 +331,12 @@ public class ConfigLogService extends AccessibilityService {
         layoutParams.y = -800;
 
         floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
-        //floatRootView.setOnTouchListener(new ItemViewTouchListener(layoutParams, windowManager));
+        overlayTouchListener = new ItemViewTouchListener(layoutParams, windowManager);
+        floatRootView.setOnTouchListener(overlayTouchListener);
+        // add button click listener
+        floatRootView.findViewById(R.id.button_drag).setOnClickListener(view -> toggleDraggable());
+        floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeWindow());
         windowManager.addView(floatRootView, layoutParams);
-        // set scrollable
-        TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-        mTextView.setMovementMethod(new ScrollingMovementMethod());
-        mTextView.setScrollbarFadingEnabled(false);
         Log.e(TAG, "showWindow: addView");
     }
 
@@ -379,6 +344,7 @@ public class ConfigLogService extends AccessibilityService {
         if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
             windowManager.removeView(floatRootView);
             floatRootView = null;
+            overlayTouchListener = null;
         }
     }
 
@@ -387,6 +353,20 @@ public class ConfigLogService extends AccessibilityService {
             showWindow();
         } else {
             removeWindow();
+        }
+    }
+
+    void toggleDraggable() {
+        if (floatRootView != null && overlayTouchListener != null) {
+            overlayTouchListener.toggleDraggable();
+            // toggle scrollable
+            TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+            if (mTextView.getMovementMethod() == null) {
+                mTextView.setMovementMethod(new ScrollingMovementMethod());
+                mTextView.setScrollbarFadingEnabled(false);
+            } else {
+                mTextView.setMovementMethod(null);
+            }
         }
     }
 
