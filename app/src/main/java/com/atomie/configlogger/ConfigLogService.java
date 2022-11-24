@@ -58,6 +58,7 @@ public class ConfigLogService extends AccessibilityService {
     static final public String EXTRA_MSG = "com.atomie.configlogger.configlogservice.msg";
 
     private static ConfigLogService self = null;
+    private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     public static ConfigLogService getInstance() {
         return self;
@@ -606,7 +607,6 @@ public class ConfigLogService extends AccessibilityService {
         }
 
         // broadcast to update UI
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String cur_datetime = format.format(new Date(cur_timestamp));
         paras[0] = " -------- " + cur_datetime + " -------- ";
         broadcast(String.join("\n", paras));
@@ -625,6 +625,9 @@ public class ConfigLogService extends AccessibilityService {
             return "invalid notification";
         }
         Bundle extras = notification.extras;
+        // 获取时间
+        long timestamp = notification.when;
+        String datetime = "time: " + format.format(new Date(timestamp));
         // 获取通知标题
         String title = "title: " + extras.getString(Notification.EXTRA_TITLE, "");
         // 获取通知内容
@@ -634,6 +637,7 @@ public class ConfigLogService extends AccessibilityService {
         String infoText = "infoText: " + extras.getString(Notification.EXTRA_INFO_TEXT, "");
 
         return String.join("\n",
+                datetime,
                 title,
                 text,
                 summaryText,
