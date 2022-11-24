@@ -19,6 +19,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.Layout;
+import android.text.method.ScrollingMovementMethod;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
@@ -312,40 +313,40 @@ public class ConfigLogService extends AccessibilityService {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
     }
 
-    static class ItemViewTouchListener implements View.OnTouchListener {
-        private int x = 0;
-        private int y = 0;
-        private final WindowManager.LayoutParams wl;
-        private final WindowManager windowManager;
-
-        public ItemViewTouchListener(WindowManager.LayoutParams wl, WindowManager windowManager) {
-            this.wl = wl;
-            this.windowManager = windowManager;
-        }
-
-        @Override
-        public boolean onTouch(View view, MotionEvent motionEvent) {
-            switch (motionEvent.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    x = (int) motionEvent.getRawX();
-                    y = (int) motionEvent.getRawY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    int nowX = (int) motionEvent.getRawX();
-                    int nowY = (int) motionEvent.getRawY();
-                    int movedX = nowX - x;
-                    int movedY = nowY - y;
-                    x = nowX;
-                    y = nowY;
-                    wl.x += movedX;
-                    wl.y += movedY;
-                    //更新悬浮球控件位置
-                    windowManager.updateViewLayout(view, wl);
-                    break;
-            }
-            return false;
-        }
-    }
+//    static class ItemViewTouchListener implements View.OnTouchListener {
+//        private int x = 0;
+//        private int y = 0;
+//        private final WindowManager.LayoutParams wl;
+//        private final WindowManager windowManager;
+//
+//        public ItemViewTouchListener(WindowManager.LayoutParams wl, WindowManager windowManager) {
+//            this.wl = wl;
+//            this.windowManager = windowManager;
+//        }
+//
+//        @Override
+//        public boolean onTouch(View view, MotionEvent motionEvent) {
+//            switch (motionEvent.getAction()) {
+//                case MotionEvent.ACTION_DOWN:
+//                    x = (int) motionEvent.getRawX();
+//                    y = (int) motionEvent.getRawY();
+//                    break;
+//                case MotionEvent.ACTION_MOVE:
+//                    int nowX = (int) motionEvent.getRawX();
+//                    int nowY = (int) motionEvent.getRawY();
+//                    int movedX = nowX - x;
+//                    int movedY = nowY - y;
+//                    x = nowX;
+//                    y = nowY;
+//                    wl.x += movedX;
+//                    wl.y += movedY;
+//                    //更新悬浮球控件位置
+//                    windowManager.updateViewLayout(view, wl);
+//                    break;
+//            }
+//            return false;
+//        }
+//    }
 
     void showWindow() {
         DisplayMetrics outMetrics = new DisplayMetrics();
@@ -361,10 +362,16 @@ public class ConfigLogService extends AccessibilityService {
         layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        layoutParams.x = 0;
+        layoutParams.y = -800;
 
         floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
-        floatRootView.setOnTouchListener(new ItemViewTouchListener(layoutParams, windowManager));
+        //floatRootView.setOnTouchListener(new ItemViewTouchListener(layoutParams, windowManager));
         windowManager.addView(floatRootView, layoutParams);
+        // set scrollable
+        TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+        mTextView.setMovementMethod(new ScrollingMovementMethod());
+        mTextView.setScrollbarFadingEnabled(false);
         Log.e(TAG, "showWindow: addView");
     }
 
