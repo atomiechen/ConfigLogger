@@ -1,4 +1,4 @@
-package com.atomie.configlogger;
+package com.atomie.configlogger.ui;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -12,6 +12,8 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.atomie.configlogger.R;
 
 //ref：https://juejin.cn/post/6844904014329413646
 public class TitleTextWindow implements View.OnTouchListener {
@@ -118,7 +120,7 @@ public class TitleTextWindow implements View.OnTouchListener {
         rootView = LayoutInflater.from(mContext).inflate(R.layout.header_toast, null); //这里是你弹窗的UI
         // 为titleView设置Touch事件
         rootView.setOnTouchListener(this);
-        // 定义WindowManager 并且将View添加到WindowManagar中去
+        // 定义WindowManager 并且将View添加到WindowManager中去
         wm = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         WindowManager.LayoutParams wm_params = new WindowManager.LayoutParams();
         wm_params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL

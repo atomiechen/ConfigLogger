@@ -23,6 +23,9 @@ import android.view.Display;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 
+import com.atomie.configlogger.ui.FloatOverlay;
+import com.atomie.configlogger.ui.TitleTextWindow;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

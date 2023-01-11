@@ -1,4 +1,4 @@
-package com.atomie.configlogger;
+package com.atomie.configlogger.ui;
 
 import android.content.Context;
 import android.os.Build;
@@ -12,9 +12,11 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.atomie.configlogger.R;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
-class FloatOverlay implements View.OnTouchListener {
+public class FloatOverlay implements View.OnTouchListener {
 
     static String TAG = "ItemViewTouchListener";
 
