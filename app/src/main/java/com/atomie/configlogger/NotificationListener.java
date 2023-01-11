@@ -53,9 +53,8 @@ public class NotificationListener extends NotificationListenerService {
         broadcast(text);
         if (ConfigLogService.isRunning()) {
             ConfigLogService.getInstance().changeOverlayText(text);
+            ConfigLogService.getInstance().showPopup();
         }
-        TitleTextWindow titleTextWindow = new TitleTextWindow(context);
-        titleTextWindow.show();
     }
 
     @Override

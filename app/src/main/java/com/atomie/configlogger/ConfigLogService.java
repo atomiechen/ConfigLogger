@@ -187,7 +187,6 @@ public class ConfigLogService extends AccessibilityService {
     }
     String packageName = "";
 
-    Context context;
     LocalBroadcastManager localBroadcastManager;
 
     void jsonSilentPut(JSONObject json, String key, Object value) {
@@ -311,7 +310,6 @@ public class ConfigLogService extends AccessibilityService {
     @Override
     public void onCreate() {
         super.onCreate();
-        context = getApplicationContext();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         initialize();
 
@@ -366,7 +364,7 @@ public class ConfigLogService extends AccessibilityService {
         });
         floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeOverlay());
 
-        showOverlay();
+//        showOverlay();
     }
 
     void destroyOverlay() {
@@ -662,5 +660,10 @@ public class ConfigLogService extends AccessibilityService {
                 bigText,
                 infoText
         );
+    }
+
+    void showPopup() {
+        TitleTextWindow titleTextWindow = new TitleTextWindow(this);
+        titleTextWindow.show();
     }
 }

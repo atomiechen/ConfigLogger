@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
-android:layout_width="match_parent"
-android:layout_height="60dp"
-android:background="#e0e0e0"
-android:layout_alignParentTop="true"
-android:orientation="vertical"
-android:visibility="gone"
-tools:visibility="visible">
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    >
 
-<TextView
-    android:id="@+id/txt_pop_info"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:text="有新的消息，请及时查看"
-    android:textColor="#00D294"
-    android:textSize="14sp" />
+    <LinearLayout
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:background="#e0e0e0"
+        android:layout_alignParentTop="true"
+        android:orientation="vertical">
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/txt_pop_info"
+            android:layout_width="wrap_content"
+            android:layout_height="fill_parent"
+            android:gravity="center"
+            android:text="有新的消息，请及时查看"
+            android:textColor="#00D294"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
