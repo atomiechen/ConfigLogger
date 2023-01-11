@@ -14,23 +14,14 @@ import android.database.ContentObserver;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
-import android.text.Layout;
-import android.text.method.ScrollingMovementMethod;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
-import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.TextView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,7 +37,6 @@ import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 
@@ -73,11 +63,7 @@ public class ConfigLogService extends AccessibilityService {
     private final IntUnaryOperator operator = x -> (x < 999)? (x + 1) : 0;
 
     // UI overlay
-    private View floatRootView;
-    private WindowManager.LayoutParams layoutParams;
-    private WindowManager windowManager;
-    private ItemViewTouchListener overlayTouchListener;
-    private AtomicBoolean overlayOn = new AtomicBoolean(false);
+    private FloatOverlay floatOverlay;
 
     // listening
     final Uri[] listenedURIs = {
@@ -312,129 +298,6 @@ public class ConfigLogService extends AccessibilityService {
         super.onCreate();
         localBroadcastManager = LocalBroadcastManager.getInstance(this);
         initialize();
-
-        // initialization about UI overlay
-        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
-    }
-
-    void initOverlay() {
-        DisplayMetrics outMetrics = new DisplayMetrics();
-        windowManager.getDefaultDisplay().getMetrics(outMetrics);
-
-        layoutParams = new WindowManager.LayoutParams();
-        //显示的位置
-        layoutParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
-        //刘海屏延伸到刘海里面
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            layoutParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-        }
-        layoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-        layoutParams.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        layoutParams.x = 0;
-        layoutParams.y = 0;
-
-        floatRootView = LayoutInflater.from(this).inflate(R.layout.message_overlay, null);
-        overlayTouchListener = new ItemViewTouchListener(layoutParams, windowManager);
-        floatRootView.setOnTouchListener(overlayTouchListener);
-        // add button click listener
-        floatRootView.findViewById(R.id.button_drag).setOnClickListener(view -> {
-            // toggle draggable
-            if (floatRootView != null && overlayTouchListener != null) {
-                overlayTouchListener.toggleDraggable();
-                // toggle scrollable
-                TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-                if (mTextView.getMovementMethod() == null) {
-                    mTextView.setMovementMethod(new ScrollingMovementMethod());
-                    mTextView.setScrollbarFadingEnabled(false);
-                } else {
-                    mTextView.setMovementMethod(null);
-                }
-            }
-        });
-        floatRootView.findViewById(R.id.button_fold).setOnClickListener(view -> {
-            // toggle fold
-            TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-            if (mTextView.getVisibility() == View.VISIBLE) {
-                mTextView.setVisibility(View.GONE);
-            } else {
-                mTextView.setVisibility(View.VISIBLE);
-            }
-        });
-        floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeOverlay());
-
-//        showOverlay();
-    }
-
-    void destroyOverlay() {
-        removeOverlay();
-        floatRootView = null;
-        overlayTouchListener = null;
-    }
-
-    synchronized void showOverlay() {
-        if (overlayOn.compareAndSet(false, true)) {
-            if (windowManager != null && floatRootView != null && layoutParams != null) {
-                windowManager.addView(floatRootView, layoutParams);
-            }
-            Log.e(TAG, "showOverlay");
-        }
-    }
-
-    synchronized void removeOverlay() {
-        if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
-            windowManager.removeView(floatRootView);
-            overlayOn.set(false);
-            Log.e(TAG, "removeOverlay");
-        }
-    }
-
-    void toggleWindow() {
-        if (!overlayOn.get()) {
-            showOverlay();
-        } else {
-            removeOverlay();
-        }
-    }
-
-    public void changeOverlayText(String text) {
-        Log.e(TAG, "changeOverlayText: " + text);
-        TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-        //mTextView.setText(text);
-        // append the new string
-        mTextView.append("\n" + text);
-
-        // Erase excessive lines
-        // ref: https://stackoverflow.com/a/10312621/11854304
-        final int MAX_LINES = 1000;
-        int excessLineNumber = mTextView.getLineCount() - MAX_LINES;
-        if (excessLineNumber > 0) {
-            int eolIndex = -1;
-            CharSequence charSequence = mTextView.getText();
-            for (int i=0; i<excessLineNumber; i++) {
-                do {
-                    eolIndex++;
-                } while(eolIndex < charSequence.length() && charSequence.charAt(eolIndex) != '\n');
-            }
-            if (eolIndex < charSequence.length()) {
-                mTextView.getEditableText().delete(0, eolIndex+1);
-            } else {
-                mTextView.setText("");
-            }
-        }
-
-        // find the amount we need to scroll.  This works by
-        // asking the TextView's internal layout for the position
-        // of the final line and then subtracting the TextView's height
-        // ref: https://stackoverflow.com/a/7350267/11854304
-        Layout layout = mTextView.getLayout();
-        if (layout == null)
-            return;
-        final int scrollAmount = layout.getLineTop(mTextView.getLineCount()) - mTextView.getHeight();
-        // if there is no need to scroll, scrollAmount will be <=0
-        if (scrollAmount > 0)
-            mTextView.scrollTo(0, scrollAmount);
     }
 
     @Override
@@ -449,12 +312,14 @@ public class ConfigLogService extends AccessibilityService {
             }
         }
         self = this;
-        initOverlay();
+        // initialization about UI overlay
+        floatOverlay = new FloatOverlay(this);
+        floatOverlay.initOverlay();
     }
 
     @Override
     public void onDestroy() {
-        destroyOverlay();
+        floatOverlay.destroyOverlay();
         terminate();
         self = null;
         super.onDestroy();
@@ -475,7 +340,7 @@ public class ConfigLogService extends AccessibilityService {
             String text = "[ACC]\n" + packagename + '\n' + notificationToString(notification);
             // update UI
             broadcast(text);
-            changeOverlayText(text);
+            floatOverlay.changeOverlayText(text);
         }
     }
 
@@ -662,7 +527,15 @@ public class ConfigLogService extends AccessibilityService {
         );
     }
 
-    void showPopup() {
+    public void toggleWindow() {
+        floatOverlay.toggleWindow();
+    }
+
+    public void changeOverlayText(String text) {
+        floatOverlay.changeOverlayText(text);
+    }
+
+    public void showPopup() {
         TitleTextWindow titleTextWindow = new TitleTextWindow(this);
         titleTextWindow.show();
     }
