@@ -1,12 +1,10 @@
 package com.atomie.configlogger.ui;
 
 import android.content.Context;
-import android.os.Build;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -14,64 +12,76 @@ import android.widget.TextView;
 
 import com.atomie.configlogger.R;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+public class FloatOverlay extends BaseOverlay {
 
-public class FloatOverlay implements View.OnTouchListener {
-
-    static String TAG = "ItemViewTouchListener";
-
-    private final Context mContext;
-    private final WindowManager windowManager;
-    private View floatRootView;
-    private WindowManager.LayoutParams wmParams;
-    private final AtomicBoolean overlayOn = new AtomicBoolean(false);
+    static final String TAG = "FloatOverlay";
 
     private int x = 0;
     private int y = 0;
     private boolean draggable = true;
 
     public FloatOverlay(Context context) {
-        this.mContext = context;
-        windowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-    }
-
-    public void toggleDraggable() {
-        draggable = !draggable;
+        super(context);
     }
 
     @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        if (draggable) {
-            switch (motionEvent.getAction()) {
-                case MotionEvent.ACTION_DOWN:
-                    x = (int) motionEvent.getRawX();
-                    y = (int) motionEvent.getRawY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    int nowX = (int) motionEvent.getRawX();
-                    int nowY = (int) motionEvent.getRawY();
-                    int movedX = nowX - x;
-                    int movedY = nowY - y;
-                    x = nowX;
-                    y = nowY;
-                    wmParams.x += movedX;
-                    wmParams.y += movedY;
-                    //更新悬浮球控件位置
-                    windowManager.updateViewLayout(view, wmParams);
-                    break;
+    protected void onCreate() {
+        // initialize view
+        setContentView(R.layout.message_overlay);
+        // set touch listener
+        getView().setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (draggable) {
+                    WindowManager.LayoutParams params = getWindowLayoutParams();
+                    switch (motionEvent.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            x = (int) motionEvent.getRawX();
+                            y = (int) motionEvent.getRawY();
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            int nowX = (int) motionEvent.getRawX();
+                            int nowY = (int) motionEvent.getRawY();
+                            int movedX = nowX - x;
+                            int movedY = nowY - y;
+                            x = nowX;
+                            y = nowY;
+                            params.x += movedX;
+                            params.y += movedY;
+                            //更新悬浮球控件位置
+                            getWindowManager().updateViewLayout(view, params);
+                            break;
+                    }
+                }
+                return false;
             }
-        }
-        return false;
-    }
+        });
+        // add button click listener
+        findViewById(R.id.button_drag).setOnClickListener(view -> {
+            // toggle draggable
+            draggable = !draggable;
+            // toggle scrollable
+            TextView mTextView = findViewById(R.id.msg_box);
+            if (mTextView.getMovementMethod() == null) {
+                mTextView.setMovementMethod(new ScrollingMovementMethod());
+                mTextView.setScrollbarFadingEnabled(false);
+            } else {
+                mTextView.setMovementMethod(null);
+            }
+        });
+        findViewById(R.id.button_fold).setOnClickListener(view -> {
+            // toggle fold
+            TextView mTextView = findViewById(R.id.msg_box);
+            if (mTextView.getVisibility() == View.VISIBLE) {
+                mTextView.setVisibility(View.GONE);
+            } else {
+                mTextView.setVisibility(View.VISIBLE);
+            }
+        });
+        findViewById(R.id.button_dismiss).setOnClickListener(view -> removeOverlay());
 
-    public void initOverlay() {
-        wmParams = new WindowManager.LayoutParams();
-        //显示的位置
-        wmParams.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY;
-        //刘海屏延伸到刘海里面
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            wmParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
-        }
+
+        WindowManager.LayoutParams wmParams = getWindowLayoutParams();
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
         wmParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
@@ -79,70 +89,26 @@ public class FloatOverlay implements View.OnTouchListener {
         wmParams.x = 0;
         wmParams.y = 0;
 
-        floatRootView = LayoutInflater.from(mContext).inflate(R.layout.message_overlay, null);
-        floatRootView.setOnTouchListener(this);
-        // add button click listener
-        floatRootView.findViewById(R.id.button_drag).setOnClickListener(view -> {
-            // toggle draggable
-            if (floatRootView != null) {
-                toggleDraggable();
-                // toggle scrollable
-                TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-                if (mTextView.getMovementMethod() == null) {
-                    mTextView.setMovementMethod(new ScrollingMovementMethod());
-                    mTextView.setScrollbarFadingEnabled(false);
-                } else {
-                    mTextView.setMovementMethod(null);
-                }
-            }
-        });
-        floatRootView.findViewById(R.id.button_fold).setOnClickListener(view -> {
-            // toggle fold
-            TextView mTextView = floatRootView.findViewById(R.id.msg_box);
-            if (mTextView.getVisibility() == View.VISIBLE) {
-                mTextView.setVisibility(View.GONE);
-            } else {
-                mTextView.setVisibility(View.VISIBLE);
-            }
-        });
-        floatRootView.findViewById(R.id.button_dismiss).setOnClickListener(view -> removeOverlay());
+//        //刘海屏延伸到刘海里面
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//            wmParams.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+//        }
 
-//        showOverlay();
-    }
-
-    synchronized public void showOverlay() {
-        if (overlayOn.compareAndSet(false, true)) {
-            if (windowManager != null && floatRootView != null && wmParams != null) {
-                windowManager.addView(floatRootView, wmParams);
-            }
-            Log.e(TAG, "showOverlay");
-        }
-    }
-
-    synchronized public void removeOverlay() {
-        if (floatRootView != null && floatRootView.getWindowToken() != null && windowManager != null) {
-            windowManager.removeView(floatRootView);
-            overlayOn.set(false);
-            Log.e(TAG, "removeOverlay");
-        }
     }
 
     public void toggleWindow() {
-        if (!overlayOn.get()) {
-            showOverlay();
-        } else {
-            removeOverlay();
+        if (getView() != null) {
+            if (!getView().isAttachedToWindow()){
+                showOverlay();
+            } else{
+                removeOverlay();
+            }
         }
-    }
-
-    public void destroyOverlay() {
-        removeOverlay();
-        floatRootView = null;
     }
 
     public void changeOverlayText(String text) {
         Log.e(TAG, "changeOverlayText: " + text);
-        TextView mTextView = floatRootView.findViewById(R.id.msg_box);
+        TextView mTextView = findViewById(R.id.msg_box);
         //mTextView.setText(text);
         // append the new string
         mTextView.append("\n" + text);

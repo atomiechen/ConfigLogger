@@ -317,7 +317,7 @@ public class ConfigLogService extends AccessibilityService {
         self = this;
         // initialization about UI overlay
         floatOverlay = new FloatOverlay(this);
-        floatOverlay.initOverlay();
+        floatOverlay.startOverlay(false);
     }
 
     @Override
@@ -540,6 +540,6 @@ public class ConfigLogService extends AccessibilityService {
 
     public void showPopup() {
         TitleTextWindow titleTextWindow = new TitleTextWindow(this);
-        titleTextWindow.show();
+        titleTextWindow.startOverlay();
     }
 }
