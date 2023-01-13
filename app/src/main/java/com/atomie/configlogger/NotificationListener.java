@@ -51,9 +51,12 @@ public class NotificationListener extends NotificationListenerService {
         // broadcast to update UI
         String text = "[Notifi-Listener]\n" + packagename + '\n' + ConfigLogService.notificationToString(notification);
         broadcast(text);
+        String key = sbn.getKey();
+        cancelNotification(key);
         if (ConfigLogService.isRunning()) {
             ConfigLogService.getInstance().changeOverlayText(text);
             ConfigLogService.getInstance().showPopup();
+            ConfigLogService.getInstance().changeMsgBoxText(text);
         }
     }
 

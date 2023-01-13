@@ -11,8 +11,12 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import com.atomie.configlogger.R;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 //ref：https://juejin.cn/post/6844904014329413646
 public class TitleTextWindow extends BaseOverlay {
@@ -155,5 +159,27 @@ public class TitleTextWindow extends BaseOverlay {
      */
     public void dismiss(){
         animDismiss();
+    }
+
+    public void changeMsgBoxText(String text) {
+        Log.e(TAG, "changeMsgBoxText: " + text);
+        TextView mTextView = findViewById(R.id.txt_pop_info);
+//        String showText = "[New Message]\n";
+//        mTextView.setText(showText);
+        //利用正则表达式提取标题和内容
+        String pattern1 = "(?<=title:)[\\s\\S]*?(?=text:)";
+        String pattern2 = "(?<=text:)[\\s\\S]*?(?=\nsummaryText:)";
+        Pattern r1 = Pattern.compile(pattern1);
+        Pattern r2 = Pattern.compile(pattern2);
+        Matcher m1 = r1.matcher(text);
+        Matcher m2 = r2.matcher(text);
+        if(m1.find() && m2.find()) {
+            String showText = "[New Message]\n";
+            showText += m1.group(0) + m2.group(0);
+            mTextView.setText(showText);
+        } else {
+            Log.e(TAG,"MATCH ERROR");
+            mTextView.setText("MATCH ERROR");
+        }
     }
 }

@@ -67,6 +67,7 @@ public class ConfigLogService extends AccessibilityService {
 
     // UI overlay
     private FloatOverlay floatOverlay;
+    private TitleTextWindow titleTextWindow;
 
     // listening
     final Uri[] listenedURIs = {
@@ -538,8 +539,12 @@ public class ConfigLogService extends AccessibilityService {
         floatOverlay.changeOverlayText(text);
     }
 
+    public void changeMsgBoxText(String text) {
+        titleTextWindow.changeMsgBoxText(text);
+    }
+
     public void showPopup() {
-        TitleTextWindow titleTextWindow = new TitleTextWindow(this);
+        titleTextWindow = new TitleTextWindow(this);
         titleTextWindow.startOverlay();
     }
 }
